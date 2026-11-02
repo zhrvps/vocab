@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Practice Dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap">
+<style>
+/* Layout: parent's report — filters, headline numbers, daily chart, then the activity log and chapter progress. */
+:root{
+  --paper:#F6F8FC; --surface:#FFFFFF; --ink:#18233A; --muted:#5B6782; --line:#D6DDEB; --grid:#E8ECF4;
+  --en:#2350C8; --zh:#C2552B; --hl:#FFE066; --good:#1E8A4C; --bad:#C23B3B; --blue-soft:#E3EAFB;
+  --display:"Baloo 2","Noto Sans SC","Trebuchet MS",system-ui,sans-serif; --body:"Atkinson Hyperlegible","Noto Sans SC",Verdana,system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{--paper:#0F1626;--surface:#172238;--ink:#E8EDF7;--muted:#9AA6C0;--line:#2B3954;--grid:#223049;--en:#7FA2FF;--zh:#F08A5D;--hl:#8A6F00;--good:#5BD08A;--bad:#FF8A80;--blue-soft:#1F2D4D;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1000px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1{margin:0;font:800 clamp(28px,5vw,38px)/1.1 var(--display)}
+h2{margin:0 0 8px;font:700 21px/1.2 var(--display)}
+.sub{margin:2px 0 0;color:var(--muted);font-size:14px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.filters label{font-size:14px;color:var(--muted)}
+select{font:inherit;color:inherit;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:7px 10px;max-width:100%}
+.btn{border:0;border-radius:10px;padding:9px 14px;font:700 15px/1 var(--display);background:var(--blue-soft);color:var(--en);cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:720px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi .val{font:800 28px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi .det{font-size:13px;color:var(--muted)}
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-bottom:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.chart{width:100%;overflow-x:auto}
+svg text{fill:var(--muted);font:12px var(--body)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.day td{background:var(--paper);font-weight:700}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:var(--surface);margin-right:6px;vertical-align:1px}
+.tag.en{background:var(--en)} .tag.zh{background:var(--zh)}
+.miss{color:var(--muted);font-size:13px}
+.pc{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:4px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pc .bar{height:8px;background:var(--grid);border-radius:6px;overflow:hidden;grid-column:1/-1}
+.pc .bar i{display:block;height:100%}
+.note{font-size:13px;color:var(--muted)} .note.err{color:var(--bad)}
+.good{color:var(--good)} .badc{color:var(--bad)}
+:focus-visible{outline:3px solid var(--en);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Practice Dashboard</h1>
+    <p class="sub">Daily activity from the English and Chinese practice sites</p>
+  </header>
+  <div class="filters">
+    <label for="who">Learner</label><select id="who"></select>
+    <label for="range">Period</label>
+    <select id="range"><option value="7">Last 7 days</option><option value="14" selected>Last 14 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select>
+    <label for="subj">Subject</label>
+    <select id="subj"><option value="all">English + Chinese</option><option value="en">English</option><option value="zh">Chinese</option></select>
+    <button class="btn" id="reload">Refresh</button>
+  </div>
+  <p class="note" id="note">Loading…</p>
+  <section class="kpis" id="kpis"></section>
+  <section class="panel"><h2>Minutes practised per day</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></section>
+  <section class="panel"><h2>Daily activity</h2><div class="tbl" id="log"></div></section>
+  <section class="panel"><h2>Chapter progress</h2><div id="chapters"></div></section>
+</div>
+<script>
+const SUPA={url:"https://yezqrwjtwwhnuawmjeod.supabase.co",key:"sb_publishable_HTl05cHUNd1LJ_-ai8GaAw_oXjk-NCT"};
+/* Chapter names and sizes. Chinese chapters use numbers from 1001; add their names here when known. */
+const NAMES={54:["Synonyms",322],55:["Antonyms",385],56:["Homophones",312],57:["One-word Substitution",100],58:["Phrasal Verbs",190],59:["Proverbs",19],60:["Idioms",163],61:["Similes",119]};
+const subjOf=c=>c>=1000?"zh":"en";
+const chName=c=>NAMES[c]?`Ch ${c} ${NAMES[c][0]}`:(c>=1000?`中文 ${c}`:`Chapter ${c}`);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mins=s=>Math.round((s||0)/60);
+const fmt=s=>{s=Math.round(s||0);if(s<60)return s?s+" sec":"0 min";const m=Math.round(s/60);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min"};
+const pct=(c,q)=>q?Math.round(c/q*100)+"%":"–";
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const nice=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short"})};
+let ROWS=[];
+try{const s=JSON.parse(localStorage.getItem("dash-filters")||"{}");if(s.range)$("#range").value=s.range;if(s.subj)$("#subj").value=s.subj}catch(e){}
+
+async function load(){
+  $("#note").className="note";$("#note").textContent="Loading…";
+  try{
+    const r=await fetch(`${SUPA.url}/rest/v1/vocab_progress?select=learner,chapter,kind,key,data,updated_at&limit=10000`,{headers:{apikey:SUPA.key}});
+    if(!r.ok)throw new Error("error "+r.status);
+    ROWS=await r.json();
+    const learners=[...new Set(ROWS.map(x=>x.learner))].sort();
+    const sel=$("#who"),prev=sel.value||(()=>{try{return JSON.parse(localStorage.getItem("dash-filters")||"{}").who}catch(e){return ""}})()||localStorage.getItem("vocab-learner")||"";
+    sel.innerHTML=learners.map(n=>`<option>${esc(n)}</option>`).join("")||`<option value="">No learners yet</option>`;
+    if(learners.includes(prev))sel.value=prev;
+    const latest=ROWS.reduce((a,x)=>x.updated_at>a?x.updated_at:a,"");
+    $("#note").textContent=latest?`Last activity saved ${new Date(latest).toLocaleString("en-SG",{dateStyle:"medium",timeStyle:"short"})}.`:"No practice saved yet.";
+    render();
+  }catch(e){$("#note").className="note err";$("#note").textContent="Couldn’t load data ("+e.message+"). Check the internet connection and press Refresh."}
+}
+function render(){
+  const who=$("#who").value,days=+$("#range").value,subj=$("#subj").value;
+  try{localStorage.setItem("dash-filters",JSON.stringify({who,range:days,subj}))}catch(e){}
+  const keep=x=>x.learner===who&&(subj==="all"||subjOf(x.chapter)===subj);
+  const usage=ROWS.filter(x=>x.kind==="usage"&&keep(x));
+  const learnerRows=ROWS.filter(x=>x.kind==="learner"&&keep(x));
+  const today=new Date();const dates=[];for(let i=days-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);dates.push(ymd(d))}
+  const from=dates[0];
+  // per day per chapter (devices summed)
+  const byDay={};usage.forEach(x=>{const d=x.data||{};if(!d.date||d.date<from)return;
+    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set()});
+    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w))});
+  const dayTot=k=>Object.entries(byDay[k]||{}).reduce((a,[ch,c])=>{a.seconds+=c.seconds;a.q+=c.questions;a.c+=c.correct;a.cards+=c.cards;a[subjOf(+ch)]+=c.seconds;return a},{seconds:0,q:0,c:0,cards:0,en:0,zh:0});
+  // KPIs
+  const tk=ymd(today),T=dayTot(tk);
+  const wk=dates.slice(-7).map(dayTot).reduce((a,b)=>({seconds:a.seconds+b.seconds,q:a.q+b.q,c:a.c+b.c}),{seconds:0,q:0,c:0});
+  const active=dates.filter(k=>dayTot(k).seconds>0||dayTot(k).q>0).length;
+  let streak=0;for(let i=dates.length-1;i>=0;i--){const t=dayTot(dates[i]);if(t.seconds>0||t.q>0)streak++;else if(i===dates.length-1)continue;else break}
+  $("#kpis").innerHTML=[
+    ["Today",fmt(T.seconds),`${T.q} questions · ${pct(T.c,T.q)} right`],
+    ["Last 7 days",fmt(wk.seconds),`${wk.q} questions · ${pct(wk.c,wk.q)} right`],
+    ["Days practised",`${active} / ${days}`,"in the selected period"],
+    ["Current streak",`${streak} day${streak===1?"":"s"}`,"days in a row with practice"]
+  ].map(([l,v,d])=>`<div class="kpi"><span class="lab">${l}</span><span class="val">${v}</span><span class="det">${d}</span></div>`).join("");
+  // chart
+  const series=subj==="all"?["en","zh"]:[subj];
+  $("#legend").innerHTML=series.map(s=>`<span><i style="background:var(--${s})"></i>${s==="en"?"English":"Chinese"}</span>`).join("");
+  const W=Math.max(($("#chart").clientWidth||600)-2,days*18),H=220,pad={l:36,r:8,t:10,b:28},cw=W-pad.l-pad.r,chh=H-pad.t-pad.b;
+  const vals=dates.map(k=>{const t=dayTot(k);return {k,en:mins(t.en),zh:mins(t.zh)}});
+  const maxV=Math.max(10,...vals.map(v=>series.reduce((a,s)=>a+v[s],0)));
+  const step=maxV<=20?5:maxV<=60?15:maxV<=120?30:60,top=Math.ceil(maxV/step)*step;
+  const y=v=>pad.t+chh-(v/top)*chh,bw=Math.max(4,cw/days*0.62);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Minutes practised per day">`;
+  for(let v=0;v<=top;v+=step)svg+=`<line x1="${pad.l}" x2="${W-pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${pad.l-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  const every=Math.ceil(days/14);
+  vals.forEach((v,i)=>{const cx=pad.l+cw*(i+.5)/days;let base=0;
+    series.forEach(s=>{if(v[s]>0){svg+=`<rect x="${cx-bw/2}" y="${y(base+v[s])}" width="${bw}" height="${y(base)-y(base+v[s])}" fill="var(--${s})" rx="2"><title>${nice(v.k)}: ${v[s]} min ${s==="en"?"English":"Chinese"}</title></rect>`;base+=v[s]}});
+    if(i%every===0||i===days-1){const [,m,d]=v.k.split("-");svg+=`<text x="${cx}" y="${H-8}" text-anchor="middle">${+d}/${+m}</text>`}});
+  svg+=`</svg>`;$("#chart").innerHTML=svg;
+  // log
+  const shown=dates.slice().reverse().filter(k=>byDay[k]);
+  $("#log").innerHTML=shown.length?`<table><thead><tr><th>Day / chapter</th><th class="n">Time</th><th class="n">Questions</th><th class="n">Right</th><th class="n">Cards</th><th>Words missed</th></tr></thead><tbody>${
+    shown.map(k=>{const t=dayTot(k);return `<tr class="day"><td>${nice(k)}</td><td class="n">${fmt(t.seconds)}</td><td class="n">${t.q}</td><td class="n">${pct(t.c,t.q)}</td><td class="n">${t.cards}</td><td></td></tr>`+
+      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}</td><td class="n">${fmt(c.seconds)}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`).join("")}).join("")
+  }</tbody></table>`:`<p class="note">No practice in this period.</p>`;
+  // chapter progress (from word-progress records)
+  const allTime={};usage.forEach(x=>{const d=x.data||{};const a=allTime[x.chapter]||(allTime[x.chapter]={seconds:0,q:0});a.seconds+=d.seconds||0;a.q+=d.questions||0});
+  const chs=[...new Set([...learnerRows.map(x=>x.chapter),...Object.keys(allTime).map(Number)])].sort((a,b)=>a-b);
+  $("#chapters").innerHTML=chs.length?chs.map(ch=>{const lr=learnerRows.find(x=>x.chapter===ch);const items=(lr&&lr.data&&lr.data.items)||[];const tricky=(lr&&lr.data&&lr.data.tricky)||[];
+    const total=NAMES[ch]?NAMES[ch][1]:0;const seen=items.length;const learned=items.filter(it=>(it.o||0)>0&&!tricky.includes(it.k)).length;const a=allTime[ch]||{seconds:0,q:0};
+    const p=total?Math.round(seen/total*100):0;
+    return `<div class="pc"><div><span class="tag ${subjOf(ch)}">${subjOf(ch)==="en"?"EN":"中文"}</span><b>${esc(chName(ch))}</b><br><span class="note">${seen}${total?" of "+total:""} seen · ${learned} learned · ${tricky.length} tricky · ${fmt(a.seconds)} all time · ${a.q} questions</span></div><div class="note" style="text-align:right">${total?p+"% seen":""}</div><div class="bar"><i style="width:${p}%;background:var(--${subjOf(ch)})"></i></div></div>`}).join("")
+    :`<p class="note">No chapters started yet.</p>`;
+}
+["#who","#range","#subj"].forEach(s=>$(s).addEventListener("change",render));
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(ROWS.length)render()},200)});
+$("#reload").onclick=load;
+load();
+</script>
+</body>
+</html>
