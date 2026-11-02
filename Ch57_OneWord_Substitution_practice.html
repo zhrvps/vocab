@@ -1,0 +1,588 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>
+<title>Chapter 57 One-word Substitution</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: one workbook column — chapter box header, mode switch, then a single practice card. */
+:root{
+  --paper:#F6F8FC; --surface:#FFFFFF; --ink:#18233A; --muted:#5B6782; --line:#D6DDEB;
+  --blue:#2350C8; --blue-soft:#E3EAFB; --hl:#FFE066;
+  --good:#1E8A4C; --good-soft:#DDF3E5; --bad:#C23B3B; --bad-soft:#FBE3E1;
+  --display:"Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0F1626; --surface:#172238; --ink:#E8EDF7; --muted:#9AA6C0; --line:#2B3954;
+  --blue:#7FA2FF; --blue-soft:#1F2D4D; --hl:#8A6F00;
+  --good:#5BD08A; --good-soft:#163828; --bad:#FF8A80; --bad-soft:#3D1D1F; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0F1626; --surface:#172238; --ink:#E8EDF7; --muted:#9AA6C0; --line:#2B3954;
+  --blue:#7FA2FF; --blue-soft:#1F2D4D; --hl:#8A6F00;
+  --good:#5BD08A; --good-soft:#163828; --bad:#FF8A80; --bad-soft:#3D1D1F; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:18px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+mark{background:linear-gradient(transparent 52%, var(--hl) 52%);color:inherit;padding:0 2px}
+
+/* header */
+.head{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center}
+.head > div:not(.chbox){flex:1 1 200px}
+.chbox{flex:none;width:76px;height:68px;border:4px solid var(--ink);display:grid;place-items:center;
+  font:800 40px/1 var(--display);letter-spacing:-.02em}
+.head h1{margin:0;font:800 clamp(30px,6vw,42px)/1 var(--display);text-wrap:balance}
+.head p{margin:4px 0 0;color:var(--muted);font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+.rule{border:2px solid var(--ink);padding:10px 14px;background:var(--surface);font-size:17px}
+
+/* controls */
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--blue-soft);padding:5px;border-radius:12px}
+.modes button{border:0;background:transparent;padding:10px 6px;border-radius:9px;font:700 16px/1.15 var(--display);color:var(--blue)}
+.modes button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bar label{font-size:14px;color:var(--muted)}
+select,input[type=search]{background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+select{max-width:100%}
+.grow{flex:1 1 220px}
+
+/* card */
+.card{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.meta{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.progress{height:6px;background:var(--blue-soft);border-radius:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.sentence{font-size:20px;line-height:1.55;margin:0}
+.sentence .blank{display:inline-block;min-width:4em;border-bottom:3px solid var(--blue);color:transparent}
+.sentence .target{font-weight:700;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px;text-decoration-color:var(--blue)}
+.ask{font:700 22px/1.25 var(--display);margin:0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;padding:13px 14px;border:2px solid var(--line);border-radius:12px;background:var(--surface);font-size:19px;min-height:56px}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt .k{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font:700 14px/1 var(--display)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.right .k{background:var(--good);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .k{background:var(--bad);color:var(--surface)}
+.opt:disabled{cursor:default}
+.fb{border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.fb.ok{background:var(--good-soft)} .fb.no{background:var(--bad-soft)}
+.fb h3{margin:0;font:800 22px/1.2 var(--display)}
+.fb.ok h3{color:var(--good)} .fb.no h3{color:var(--bad)}
+.fb p{margin:0}
+.tip{font-size:15px;color:var(--ink);border-top:1px dashed var(--line);padding-top:8px}
+.tip b{color:var(--blue)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:0;border-radius:12px;padding:12px 20px;font:700 18px/1 var(--display);background:var(--blue);color:var(--surface)}
+.btn.ghost{background:var(--blue-soft);color:var(--blue)}
+.say{border:0;background:var(--blue-soft);color:var(--blue);border-radius:50%;width:34px;height:34px;display:inline-grid;place-items:center;vertical-align:middle;flex:none}
+.say svg{width:18px;height:18px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+
+/* flashcard */
+.flash{border:2px dashed var(--line);border-radius:14px;padding:26px 18px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;cursor:pointer;background:transparent;width:100%}
+.flash .big{font:800 clamp(34px,8vw,52px)/1.05 var(--display);margin:0;overflow-wrap:anywhere}
+.flash .eq{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.flash .syn{font:800 clamp(26px,6vw,38px)/1.1 var(--display);color:var(--blue);margin:0}
+.flash .mean{margin:0;max-width:52ch}
+
+/* results + list */
+.score{font:800 56px/1 var(--display);color:var(--blue);font-variant-numeric:tabular-nums}
+.missed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.missed li{border-bottom:1px solid var(--line);padding-bottom:10px}
+.wl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.wl li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.wl .pair{font-size:18px}
+.wl .pair b{font-family:var(--display);font-size:20px}
+.wl .pair span{color:var(--blue);font-weight:700}
+.wl .m{grid-column:1/-1;font-size:15px;color:var(--muted)}
+.star{border:0;background:transparent;color:var(--muted);font-size:13px;padding:4px 8px;border-radius:8px}
+.star[aria-pressed="true"]{background:var(--hl);color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:480px){.tiles{grid-template-columns:1fr}}
+.tile{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.tile .lab{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tile .val{font:800 30px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.tile .det{font-size:14px;color:var(--muted)}
+.tbl{overflow-x:auto}
+.tbl table{width:100%;min-width:0;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+.tbl th{text-align:left;font-size:13px;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:2px solid var(--line)}
+.tbl td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:has(+ tr td[colspan]) td{border-bottom:0}
+.tbl td:first-child:not([colspan]){white-space:nowrap}
+.tbl td.n,.tbl th.n{text-align:right}
+.status{margin:-6px 0 0;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.status b{color:var(--ink)}
+.savenote{margin:-10px 0 0;font-size:13px;color:var(--muted)}
+.savenote.saved,.savenote.ready{color:var(--good)}
+.savenote.error{color:var(--bad)}
+.src{font-size:13px;color:var(--muted);margin:0}
+#m-progress[aria-pressed="true"]{background:var(--blue);color:var(--surface)}
+footer{font-size:13px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="chbox" aria-label="Chapter">57</div>
+    <div style="min-width:0"><h1 id="title"></h1><p id="sub"></p></div>
+    <button class="btn ghost" id="m-progress" data-mode="progress" style="flex:none">Progress</button>
+  </header>
+  <div class="rule" id="rule"></div>
+
+  <nav class="modes" aria-label="Practice mode">
+    <button id="m-quiz" data-mode="quiz">Quiz</button>
+    <button id="m-reverse" data-mode="reverse">Find the word</button>
+    <button id="m-learn" data-mode="learn">Flashcards</button>
+    <button id="m-list" data-mode="list">Word list</button>
+  </nav>
+
+  <div class="bar" id="bar">
+    <label for="set">Practise</label>
+    <select id="set" class="grow"></select>
+  </div>
+  <p class="status" id="status"></p>
+  <p class="savenote checking" id="saveNote">Checking where progress is saved…</p>
+
+  <main id="stage" class="card" aria-live="polite"></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const CHAPTER = {
+  num: 57,
+  key: "ch57",
+  title: "One-word Substitution",
+  rule: "Many words can sometimes be <mark>replaced by one word</mark>. e.g. You are not <b>loud enough to be heard</b>. → You are not <b>audible</b>.",
+  pages: "pages 310–312",
+  forwardPrompt: (p) => `Which one word can replace <b>${p}</b>?`,
+  reversePrompt: (w) => `What does <b>${w}</b> mean?`,
+  relation: (w,p) => `So “${p}” can be replaced by one word: <b>${w}</b>.`,
+  pairWord: "means",
+  cardHint: "What does this word mean? Tap to check.",
+  swapLabel: "",
+  joiner: "=",
+  rules: {}
+};
+const ENTRIES = [{"w": "abnormal", "a": "not normal", "wm": "not normal or not usual", "am": "", "s": "The doctor said the boy's temperature was {abnormal}.", "sp": "The doctor said the boy's temperature was {not normal}.", "t": "sub", "bf": ["abnormal"], "br": ["abnormal"]}, {"w": "abolish", "a": "put an end to", "wm": "to put an end to a rule or a practice", "am": "", "s": "Many countries decided to {abolish} slavery long ago.", "sp": "Many countries decided to {put an end to} slavery long ago.", "t": "sub", "bf": ["abolish"], "br": ["abolish"]}, {"w": "accompany", "a": "go with", "wm": "to go somewhere with someone", "am": "", "s": "Mum will {accompany} my little brother to his first day of school.", "sp": "Mum will {go with} my little brother to his first day of school.", "t": "sub", "bf": ["accompany"], "br": ["accompany"]}, {"w": "accomplish", "a": "succeed in doing", "wm": "to succeed in doing something", "am": "", "s": "With practice, you can {accomplish} anything.", "sp": "With practice, you can {succeed in doing} anything.", "t": "sub", "bf": ["accomplish", "improve"], "br": ["accomplish", "improve"]}, {"w": "adopt", "a": "take as one's own", "wm": "to take something or someone as your own", "am": "", "s": "Our family decided to {adopt} a puppy from the animal shelter.", "sp": "Our family decided to {take as our own} a puppy from the animal shelter.", "t": "sub", "bf": ["adopt"], "br": ["adopt"]}, {"w": "alone", "a": "by oneself", "wm": "by yourself, with nobody else", "am": "", "s": "Grandpa likes to sit {alone} in the garden and read.", "sp": "Grandpa likes to sit {by himself} in the garden and read.", "t": "sub", "bf": ["alone", "uninhabited"], "br": ["alone", "uninhabited"]}, {"w": "annually", "a": "once a year", "wm": "once every year", "am": "", "s": "Our school holds its sports day {annually}.", "sp": "Our school holds its sports day {once a year}.", "t": "sub", "bf": ["annually"], "br": ["annually"]}, {"w": "appear", "a": "become visible", "wm": "to come into sight or become visible", "am": "", "s": "A rainbow began to {appear} after the rain stopped.", "sp": "A rainbow began to {become visible} after the rain stopped.", "t": "sub", "bf": ["appear", "reveal"], "br": ["appear", "reveal"]}, {"w": "applaud", "a": "express approval by clapping", "wm": "to show you like something by clapping your hands", "am": "", "s": "The parents {applauded} loudly after the school concert.", "sp": "The parents {expressed approval by clapping} loudly after the school concert.", "t": "sub", "bf": ["applaud"], "br": ["applaud"]}, {"w": "audible", "a": "loud enough to be heard", "wm": "loud enough to be heard", "am": "", "s": "Please speak up so that your voice is {audible} at the back.", "sp": "Please speak up so that your voice is {loud enough to be heard} at the back.", "t": "sub", "bf": ["audible"], "br": ["audible"], "note": "Opposite: inaudible (too soft to be heard)."}, {"w": "audience", "a": "group of people who watch a show", "wm": "the group of people who watch or listen to a show", "am": "", "s": "The {audience} cheered when the magician pulled out a rabbit.", "sp": "The {group of people who watched the show} cheered when the magician pulled out a rabbit.", "t": "sub", "bf": ["audience", "spectator"], "br": ["audience", "spectator"]}, {"w": "avoid", "a": "keep oneself away from", "wm": "to keep yourself away from someone or something", "am": "", "s": "Try to {avoid} puddles so your school shoes stay dry.", "sp": "Try to {keep yourself away from} puddles so your school shoes stay dry.", "t": "sub", "bf": ["avoid", "disappear"], "br": ["avoid", "disappear"]}, {"w": "behind", "a": "at the back of", "wm": "at the back of something", "am": "", "s": "The cat is hiding {behind} the sofa.", "sp": "The cat is hiding {at the back of} the sofa.", "t": "sub", "bf": ["behind"], "br": ["behind"]}, {"w": "blunt", "a": "not sharp", "wm": "not sharp", "am": "", "s": "This pencil is {blunt}, so I need to sharpen it.", "sp": "This pencil is {not sharp}, so I need to sharpen it.", "t": "sub", "bf": ["blunt"], "br": ["blunt"]}, {"w": "century", "a": "period of 100 years", "wm": "a period of 100 years", "am": "", "s": "This old shophouse is almost a {century} old.", "sp": "This old shophouse is almost a {period of 100 years} old.", "t": "sub", "bf": ["century"], "br": ["century"]}, {"w": "cheap", "a": "low in cost or value", "wm": "low in cost, or low in value or quality", "am": "", "s": "The toy was {cheap}, but it broke after one day.", "sp": "The toy was {low in cost}, but it broke after one day.", "t": "sub", "bf": ["cheap"], "br": ["cheap"]}, {"w": "console", "a": "comfort in time of sorrow", "wm": "to comfort someone who is sad", "am": "", "s": "I tried to {console} my friend when her hamster died.", "sp": "I tried to {comfort my friend in her time of sorrow} when her hamster died.", "t": "sub", "bf": ["console"], "br": ["console"]}, {"w": "continually", "a": "never ending", "wm": "happening again and again, with short breaks in between", "am": "", "s": "My little sister {continually} asks, \"Are we there yet?\"", "sp": "My little sister asks, \"Are we there yet?\" {in a never-ending way}.", "t": "sub", "bf": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "br": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "note": "Continually = again and again, with breaks (a dripping tap). Continuous = without stopping (a flowing river). The book's phrases are a little loose, so remember this difference."}, {"w": "continuous", "a": "without interval", "wm": "going on without stopping or a break", "am": "", "s": "There was {continuous} rain for three whole days.", "sp": "There was rain {without interval} for three whole days.", "t": "sub", "bf": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "br": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "note": "Continuous = no stopping at all, like a flowing river. Continually = again and again, with breaks. The book's phrases are a little loose, so remember this difference."}, {"w": "crawl", "a": "move on hands and knees", "wm": "to move along on your hands and knees", "am": "", "s": "The baby {crawled} across the floor to reach her toy.", "sp": "The baby {moved on hands and knees} across the floor to reach her toy.", "t": "sub", "bf": ["crawl"], "br": ["crawl"]}, {"w": "cripple", "a": "lame person", "wm": "an old word for a person who cannot walk or move normally", "am": "", "s": "In old stories, a {cripple} is often helped by a kind stranger.", "sp": "In old stories, a {lame person} is often helped by a kind stranger.", "t": "sub", "bf": ["cripple", "handicapped", "lame"], "br": ["cripple", "handicapped", "lame"], "note": "This is an old word that can hurt people's feelings if used about a person today. Kinder words are \"a person with a disability\" or \"a wheelchair user\"."}, {"w": "decade", "a": "period of 10 years", "wm": "a period of 10 years", "am": "", "s": "My grandparents have lived in this flat for a {decade}.", "sp": "My grandparents have lived in this flat for a {period of 10 years}.", "t": "sub", "bf": ["decade"], "br": ["decade"]}, {"w": "decide", "a": "make up one's mind", "wm": "to make up your mind", "am": "", "s": "I cannot {decide} whether to have chicken rice or laksa.", "sp": "I cannot {make up my mind} whether to have chicken rice or laksa.", "t": "sub", "bf": ["decide"], "br": ["decide"]}, {"w": "disappear", "a": "go out of sight or existence", "wm": "to go out of sight, or to stop existing", "am": "", "s": "The sun began to {disappear} behind the clouds.", "sp": "The sun began to {go out of sight} behind the clouds.", "t": "sub", "bf": ["avoid", "disappear"], "br": ["avoid", "disappear"]}, {"w": "discover", "a": "find out", "wm": "to find out something you did not know before", "am": "", "s": "Did you {discover} who ate the last piece of cake?", "sp": "Did you {find out} who ate the last piece of cake?", "t": "sub", "bf": ["discover"], "br": ["discover"]}, {"w": "distant", "a": "far away", "wm": "far away", "am": "", "s": "The sound of thunder was {distant}.", "sp": "The sound of thunder was {far away}.", "t": "sub", "bf": ["distant", "vicinity"], "br": ["distant", "vicinity"]}, {"w": "drought", "a": "long spell of dry weather", "wm": "a long time with little or no rain", "am": "", "s": "The {drought} dried up the farmer's fields.", "sp": "The {long spell of dry weather} dried up the farmer's fields.", "t": "sub", "bf": ["drought", "famine"], "br": ["drought", "famine"]}, {"w": "edible", "a": "suitable for eating", "wm": "safe and suitable to eat", "am": "", "s": "Some mushrooms are {edible}, but others are poisonous.", "sp": "Some mushrooms are {suitable for eating}, but others are poisonous.", "t": "sub", "bf": ["edible"], "br": ["edible"]}, {"w": "eligible", "a": "qualified to be chosen", "wm": "allowed or qualified to be chosen for something", "am": "", "s": "Only Primary 5 pupils are {eligible} to join the school prefects.", "sp": "Only Primary 5 pupils are {qualified to be chosen} to join the school prefects.", "t": "sub", "bf": ["eligible"], "br": ["eligible"]}, {"w": "emigrate", "a": "leave one country and go to settle in another", "wm": "to leave your own country to live in another country", "am": "", "s": "My uncle plans to {emigrate} from Singapore to Australia.", "sp": "My uncle plans to {leave Singapore and go to settle in} Australia.", "t": "sub", "bf": ["emigrate"], "br": ["emigrate"], "note": "Tip: Emigrate = Exit a country. Immigrate = come In to a country."}, {"w": "endure", "a": "put up with", "wm": "to put up with something difficult or unpleasant", "am": "", "s": "The hikers had to {endure} the hot sun for hours.", "sp": "The hikers had to {put up with} the hot sun for hours.", "t": "sub", "bf": ["endure", "survive"], "br": ["endure", "survive"]}, {"w": "entrance", "a": "way in", "wm": "the way into a place", "am": "", "s": "Please meet me at the {entrance} of the zoo.", "sp": "Please meet me at the {way in} of the zoo.", "t": "sub", "bf": ["entrance"], "br": ["entrance"]}, {"w": "eternity", "a": "time that has no limit", "wm": "time that never ends", "am": "", "s": "Waiting for the school holidays felt like an {eternity}.", "sp": "Waiting for the school holidays felt like a {time that has no limit}.", "t": "sub", "bf": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "br": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"]}, {"w": "exit", "a": "way out", "wm": "the way out of a place", "am": "", "s": "In case of fire, walk quickly to the nearest {exit}.", "sp": "In case of fire, walk quickly to the nearest {way out}.", "t": "sub", "bf": ["exit"], "br": ["exit"]}, {"w": "explain", "a": "show clearly the meaning of", "wm": "to make something clear so others understand it", "am": "", "s": "Can you {explain} this proverb to me?", "sp": "Can you {show clearly the meaning of} this proverb to me?", "t": "sub", "bf": ["explain"], "br": ["explain"]}, {"w": "export", "a": "send goods to another country for sale", "wm": "to send goods to another country to sell them", "am": "", "s": "Farmers in Thailand {export} rice.", "sp": "Farmers in Thailand {send rice to other countries for sale}.", "t": "sub", "bf": ["export"], "br": ["export"], "note": "Opposite: import (to bring goods into a country)."}, {"w": "famine", "a": "extreme scarcity of food", "wm": "a serious lack of food in a place", "am": "", "s": "Many people went hungry during the {famine}.", "sp": "Many people went hungry during the {extreme scarcity of food}.", "t": "sub", "bf": ["drought", "famine"], "br": ["drought", "famine"]}, {"w": "flexible", "a": "able to bend easily without breaking", "wm": "able to bend easily without breaking", "am": "", "s": "The gymnast's body is very {flexible}.", "sp": "The gymnast's body is very {able to bend easily without breaking}.", "t": "sub", "bf": ["flexible"], "br": ["flexible"], "note": "\"Flexible\" can also describe plans that can change easily."}, {"w": "follow", "a": "go or come after", "wm": "to go or come after someone or something", "am": "", "s": "The ducklings {follow} their mother to the pond.", "sp": "The ducklings {go after} their mother to the pond.", "t": "sub", "bf": ["follow"], "br": ["follow"]}, {"w": "fortnight", "a": "period of two weeks", "wm": "a period of two weeks", "am": "", "s": "We will go back to school in a {fortnight}.", "sp": "We will go back to school in a {period of two weeks}.", "t": "sub", "bf": ["fortnight"], "br": ["fortnight"]}, {"w": "fragile", "a": "easily broken", "wm": "easily broken", "am": "", "s": "Be careful with that vase, because it is very {fragile}.", "sp": "Be careful with that vase, because it is very {easily broken}.", "t": "sub", "bf": ["fragile", "frail"], "br": ["fragile", "frail"], "note": "Fragile is about things (glass, eggs). Frail is about a person or animal being physically weak."}, {"w": "frail", "a": "physically weak", "wm": "weak in body, often because of old age or illness", "am": "", "s": "My great-grandmother is {frail}, so we help her up the stairs.", "sp": "My great-grandmother is {physically weak}, so we help her up the stairs.", "t": "sub", "bf": ["fragile", "frail"], "br": ["fragile", "frail"], "note": "Frail is about a person's body being weak. Fragile is about things that break easily."}, {"w": "haberdashery", "a": "small articles of dress, sewing-goods, etc.", "wm": "small things for sewing, such as buttons, ribbons and thread", "am": "", "s": "Mum bought buttons and ribbons from the {haberdashery}.", "sp": "Mum bought buttons and ribbons from the {shop selling small articles of dress and sewing-goods}.", "t": "sub", "bf": ["haberdashery"], "br": ["haberdashery"], "note": "The word can mean the goods themselves or the shop that sells them."}, {"w": "habitable", "a": "suitable for living in", "wm": "good enough for people to live in", "am": "", "s": "After the repairs, the old house was {habitable} again.", "sp": "After the repairs, the old house was {suitable for living in} again.", "t": "sub", "bf": ["habitable"], "br": ["habitable"], "note": "Habitat, habitable and habitual all start with \"habit\" but mean different things: a home in nature, fit to live in, and done often."}, {"w": "habitat", "a": "an animal's or plant's natural environment", "wm": "the natural home of an animal or plant", "am": "", "s": "The mangrove swamp is the {habitat} of many crabs.", "sp": "The mangrove swamp is the {natural environment} of many crabs.", "t": "sub", "bf": ["habitat"], "br": ["habitat"], "note": "Habitat = natural home. Habitable = fit to live in. Habitual = done again and again, like a habit."}, {"w": "habitual", "a": "doing something constantly", "wm": "done again and again, as a habit", "am": "", "s": "Biting his nails is a {habitual} action for my brother.", "sp": "Biting his nails is something my brother {does constantly}.", "t": "sub", "bf": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "br": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "note": "Habitual = done often, like a habit. Habitat = natural home. Habitable = fit to live in."}, {"w": "haggle", "a": "argue about price of goods", "wm": "to argue about the price of something before buying it", "am": "", "s": "Auntie likes to {haggle} with the stallholders at the market.", "sp": "Auntie likes to {argue about the price of goods} with the stallholders at the market.", "t": "sub", "bf": ["haggle"], "br": ["haggle"]}, {"w": "handicapped", "a": "suffering from a mental or physical disability", "wm": "having a disability of the body or mind", "am": "", "s": "The museum has ramps for visitors who are {handicapped}.", "sp": "The museum has ramps for visitors who are {suffering from a physical disability}.", "t": "sub", "bf": ["cripple", "handicapped", "lame"], "br": ["cripple", "handicapped", "lame"], "note": "\"Handicapped\" is an old word that some people find hurtful today. Kinder words are \"a person with a disability\" or \"people with disabilities\"."}, {"w": "hibernate", "a": "spend the winter in sleep", "wm": "to sleep through the winter", "am": "", "s": "Bears {hibernate} in their caves when it is cold.", "sp": "Bears {spend the winter in sleep} in their caves.", "t": "sub", "bf": ["hibernate"], "br": ["hibernate"]}, {"w": "hustle", "a": "push roughly", "wm": "to push someone roughly or hurry them along", "am": "", "s": "The guards {hustled} the crowd away from the door.", "sp": "The guards {pushed the crowd roughly} away from the door.", "t": "sub", "bf": ["hustle"], "br": ["hustle"]}, {"w": "identity", "a": "who or what a person is", "wm": "who or what a person is", "am": "", "s": "The superhero kept his real {identity} a secret.", "sp": "The superhero kept {who he really was} a secret.", "t": "sub", "bf": ["identity"], "br": ["identity"]}, {"w": "idle", "a": "doing no work or lazy", "wm": "not working or busy, or lazy", "am": "", "s": "The workers were {idle} because the machine had broken down.", "sp": "The workers were {doing no work} because the machine had broken down.", "t": "sub", "bf": ["idle", "useless"], "br": ["idle", "useless"]}, {"w": "illegible", "a": "not clear enough to be readable", "wm": "so messy or unclear that it cannot be read", "am": "", "s": "The doctor's handwriting was {illegible}.", "sp": "The doctor's handwriting was {not clear enough to be readable}.", "t": "sub", "bf": ["illegible"], "br": ["illegible"], "note": "Illegible is about writing that cannot be read. Illiterate is about a person who cannot read or write."}, {"w": "illiterate", "a": "unable to read or write", "wm": "not able to read or write", "am": "", "s": "Long ago, many people were {illiterate} because they could not go to school.", "sp": "Long ago, many people were {unable to read or write} because they could not go to school.", "t": "sub", "bf": ["illiterate"], "br": ["illiterate"], "note": "Illiterate is about a person. Illegible is about writing that is too messy to read. Be kind: it is not someone's fault."}, {"w": "illuminate", "a": "light up", "wm": "to light something up", "am": "", "s": "Thousands of lights {illuminate} Orchard Road at Christmas.", "sp": "Thousands of lights {light up} Orchard Road at Christmas.", "t": "sub", "bf": ["illuminate"], "br": ["illuminate"]}, {"w": "illustrate", "a": "make clear by examples or pictures", "wm": "to explain something using examples or pictures", "am": "", "s": "Our teacher drew a diagram to {illustrate} the water cycle.", "sp": "Our teacher drew a diagram to {make clear by pictures} the water cycle.", "t": "sub", "bf": ["illustrate"], "br": ["illustrate"], "note": "It can also mean drawing pictures for a book."}, {"w": "immediately", "a": "without any delay", "wm": "right away, without any delay", "am": "", "s": "When the bell rang, the pupils lined up {immediately}.", "sp": "When the bell rang, the pupils lined up {without any delay}.", "t": "sub", "bf": ["immediately", "soon"], "br": ["immediately", "soon"]}, {"w": "immigrate", "a": "come into a foreign country as a permanent resident", "wm": "to come into a new country to live there for good", "am": "", "s": "Many families {immigrate} to Singapore to work and study.", "sp": "Many families {come into Singapore as permanent residents} to work and study.", "t": "sub", "bf": ["immigrate"], "br": ["immigrate"], "note": "Tip: Immigrate = come In to a country. Emigrate = Exit a country."}, {"w": "immortal", "a": "living forever", "wm": "living forever and never dying", "am": "", "s": "In the legend, the dragon was {immortal}.", "sp": "In the legend, the dragon was {living forever}.", "t": "sub", "bf": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "br": ["continually", "continuous", "eternity", "habitual", "immortal", "repeatedly"], "note": "Opposite: mortal (will die one day)."}, {"w": "improve", "a": "become better", "wm": "to become better", "am": "", "s": "My spelling began to {improve} after I read more books.", "sp": "My spelling began to {become better} after I read more books.", "t": "sub", "bf": ["accomplish", "improve"], "br": ["accomplish", "improve"]}, {"w": "infallible", "a": "incapable of being wrong", "wm": "never wrong", "am": "", "s": "Even the best teacher is not {infallible}.", "sp": "Even the best teacher is not {incapable of being wrong}.", "t": "sub", "bf": ["infallible"], "br": ["infallible"]}, {"w": "innocent", "a": "not guilty", "wm": "not guilty of doing something wrong", "am": "", "s": "The dog looked {innocent}, but there was cake on its nose.", "sp": "The dog looked {not guilty}, but there was cake on its nose.", "t": "sub", "bf": ["innocent"], "br": ["innocent"]}, {"w": "invincible", "a": "cannot be conquered", "wm": "too strong to be beaten", "am": "", "s": "Our football team felt {invincible} after winning five games.", "sp": "Our football team felt {as if it could not be conquered} after winning five games.", "t": "sub", "bf": ["invincible"], "br": ["invincible"]}, {"w": "invisible", "a": "cannot be seen", "wm": "not able to be seen", "am": "", "s": "In the story, the wizard wore a cloak that made him {invisible}.", "sp": "In the story, the wizard wore a cloak that made him {unable to be seen}.", "t": "sub", "bf": ["invisible"], "br": ["invisible"]}, {"w": "irreparable", "a": "cannot be repaired", "wm": "so badly damaged that it cannot be fixed", "am": "", "s": "The phone was {irreparable} after it fell into the sea.", "sp": "The phone {could not be repaired} after it fell into the sea.", "t": "sub", "bf": ["irreparable"], "br": ["irreparable"]}, {"w": "lame", "a": "unable to walk normally", "wm": "not able to walk normally because of an injured leg or foot", "am": "", "s": "The horse was {lame} after hurting its leg.", "sp": "The horse was {unable to walk normally} after hurting its leg.", "t": "sub", "bf": ["cripple", "handicapped", "lame"], "br": ["cripple", "handicapped", "lame"], "note": "\"Lame\" is fine for animals, but it is an old word that can hurt feelings if used about a person. Say \"a person who has difficulty walking\"."}, {"w": "lunatic", "a": "person who is insane or very foolish", "wm": "an old word for a person who is mentally ill or very foolish", "am": "", "s": "In the old story, the villagers called the strange man a {lunatic}.", "sp": "In the old story, the villagers called the strange man a {person who is insane}.", "t": "sub", "bf": ["lunatic", "mute"], "br": ["lunatic", "mute"], "note": "This is an old word that can hurt people's feelings. Today we say \"a person with a mental illness\". Never use it to tease anyone."}, {"w": "mute", "a": "dumb person", "wm": "a person who is not able to speak", "am": "", "s": "In the fairy tale, a witch turned the princess into a {mute}.", "sp": "In the fairy tale, a witch turned the princess into a {dumb person}.", "t": "sub", "bf": ["lunatic", "mute", "quiet", "whisper"], "br": ["lunatic", "mute", "quiet", "whisper"], "note": "\"Dumb person\" is an old phrase that can hurt people's feelings. Kinder words are \"a person who cannot speak\" or \"a non-speaking person\"."}, {"w": "neighbour", "a": "person living next door", "wm": "a person who lives next door or near you", "am": "", "s": "Our {neighbour} gave us a plate of kueh for Hari Raya.", "sp": "The {person living next door} gave us a plate of kueh for Hari Raya.", "t": "sub", "bf": ["neighbour"], "br": ["neighbour"], "note": "British spelling: neighbour (American: neighbor)."}, {"w": "notorious", "a": "well-known in an unfavourable way", "wm": "famous for something bad", "am": "", "s": "The pirate was {notorious} for stealing gold.", "sp": "The pirate was {well-known in an unfavourable way} for stealing gold.", "t": "sub", "bf": ["notorious", "popular"], "br": ["notorious", "popular"], "note": "Famous is good fame; notorious is bad fame."}, {"w": "occasionally", "a": "happening from time to time", "wm": "sometimes, but not often", "am": "", "s": "We {occasionally} eat at a hawker centre near our block.", "sp": "We eat at a hawker centre near our block {from time to time}.", "t": "sub", "bf": ["occasionally", "repeatedly"], "br": ["occasionally", "repeatedly"]}, {"w": "optimist", "a": "person who takes a hopeful view of things", "wm": "a person who always expects good things to happen", "am": "", "s": "As an {optimist}, Mei Ling believed the rain would stop before sports day.", "sp": "As a {person who takes a hopeful view of things}, Mei Ling believed the rain would stop before sports day.", "t": "sub", "bf": ["optimist"], "br": ["optimist"], "note": "Opposite: pessimist."}, {"w": "parents", "a": "father and mother", "wm": "your father and mother", "am": "", "s": "My {parents} came to watch my school concert.", "sp": "My {father and mother} came to watch my school concert.", "t": "sub", "bf": ["parents"], "br": ["parents"]}, {"w": "pedestrian", "a": "person walking in a street", "wm": "a person walking along a street or road", "am": "", "s": "The driver stopped to let a {pedestrian} cross the road.", "sp": "The driver stopped to let a {person walking in the street} cross the road.", "t": "sub", "bf": ["pedestrian"], "br": ["pedestrian"]}, {"w": "pessimist", "a": "person who takes a gloomy view of things", "wm": "a person who always expects bad things to happen", "am": "", "s": "Ravi is a {pessimist}; he always thinks he will fail his tests.", "sp": "Ravi is a {person who takes a gloomy view of things}; he always thinks he will fail his tests.", "t": "sub", "bf": ["pessimist"], "br": ["pessimist"], "note": "Opposite: optimist."}, {"w": "politics", "a": "science and art of government", "wm": "the work and ideas of running a country", "am": "", "s": "My dad likes to read about {politics} in the newspaper.", "sp": "My dad likes to read about the {science and art of government} in the newspaper.", "t": "sub", "bf": ["politics"], "br": ["politics"]}, {"w": "popular", "a": "liked by many people", "wm": "liked by many people", "am": "", "s": "Ice cream is very {popular} with children.", "sp": "Ice cream is very {liked by many people}, especially children.", "t": "sub", "bf": ["notorious", "popular"], "br": ["notorious", "popular"]}, {"w": "postpone", "a": "put off until a later time", "wm": "to put something off until a later time", "am": "", "s": "The teacher had to {postpone} the outing because of the storm.", "sp": "The teacher had to {put off the outing until a later time} because of the storm.", "t": "sub", "bf": ["postpone"], "br": ["postpone"]}, {"w": "punctual", "a": "on time", "wm": "arriving or doing something at the right time", "am": "", "s": "Please be {punctual} for the school bus.", "sp": "Please be {on time} for the school bus.", "t": "sub", "bf": ["punctual"], "br": ["punctual"]}, {"w": "quadruped", "a": "four-legged animal", "wm": "an animal that has four legs", "am": "", "s": "A dog is a {quadruped}, but a bird is not.", "sp": "A dog is a {four-legged animal}, but a bird is not.", "t": "sub", "bf": ["quadruped"], "br": ["quadruped"], "note": "\"Quad\" means four, as in quadrilateral."}, {"w": "quiet", "a": "with little or no sound", "wm": "making little or no sound", "am": "", "s": "The library is a {quiet} place.", "sp": "The library is a place {with little or no sound}.", "t": "sub", "bf": ["mute", "quiet", "whisper"], "br": ["mute", "quiet", "whisper"], "note": "Do not confuse quiet (no noise) with quite (very, or fairly), as in \"quite hot\"."}, {"w": "repeatedly", "a": "again and again", "wm": "again and again", "am": "", "s": "The puppy {repeatedly} chewed my slippers.", "sp": "The puppy {again and again} chewed my slippers.", "t": "sub", "bf": ["continually", "continuous", "eternity", "habitual", "immortal", "occasionally", "repeatedly"], "br": ["continually", "continuous", "eternity", "habitual", "immortal", "occasionally", "repeatedly"]}, {"w": "return", "a": "come or go back", "wm": "to come back or go back to a place", "am": "", "s": "We will {return} home after the holiday.", "sp": "We will {come back} home after the holiday.", "t": "sub", "bf": ["return", "travel"], "br": ["return", "travel"]}, {"w": "reveal", "a": "make known", "wm": "to make something known that was secret", "am": "", "s": "The magician refused to {reveal} how he did the trick.", "sp": "The magician refused to {make known} how he did the trick.", "t": "sub", "bf": ["appear", "reveal"], "br": ["appear", "reveal"]}, {"w": "revolve", "a": "turn round", "wm": "to turn round and round, especially around a point", "am": "", "s": "The Earth {revolves} around the sun.", "sp": "The Earth {turns round} the sun.", "t": "sub", "bf": ["revolve"], "br": ["revolve"]}, {"w": "scream", "a": "make a long piercing cry or sound", "wm": "to make a loud, high cry because of fear, pain or excitement", "am": "", "s": "My sister began to {scream} when she saw the cockroach.", "sp": "My sister began to {make a long piercing cry} when she saw the cockroach.", "t": "sub", "bf": ["scream", "shout"], "br": ["scream", "shout"]}, {"w": "shout", "a": "loud cry", "wm": "a loud cry or call", "am": "", "s": "We heard a {shout} from the playground.", "sp": "We heard a {loud cry} from the playground.", "t": "sub", "bf": ["scream", "shout"], "br": ["scream", "shout"], "note": "\"Shout\" can also be a verb: to call out loudly."}, {"w": "soon", "a": "in a short time", "wm": "in a short time from now", "am": "", "s": "Dinner will be ready {soon}.", "sp": "Dinner will be ready {in a short time}.", "t": "sub", "bf": ["immediately", "soon"], "br": ["immediately", "soon"]}, {"w": "spectator", "a": "person who watches a show or game or incident", "wm": "a person who watches a show, game or event", "am": "", "s": "Every {spectator} at the stadium stood up to cheer.", "sp": "Every {person who watched the game} at the stadium stood up to cheer.", "t": "sub", "bf": ["audience", "spectator"], "br": ["audience", "spectator"]}, {"w": "stale", "a": "not fresh", "wm": "no longer fresh", "am": "", "s": "The bread was {stale}, so we fed it to the ducks.", "sp": "The bread was {not fresh}, so we fed it to the ducks.", "t": "sub", "bf": ["stale"], "br": ["stale"]}, {"w": "stare", "a": "look long and steadily", "wm": "to look at something for a long time without looking away", "am": "", "s": "It is rude to {stare} at people.", "sp": "It is rude to {look long and steadily} at people.", "t": "sub", "bf": ["stare"], "br": ["stare"]}, {"w": "survive", "a": "remain alive or in existence", "wm": "to stay alive or keep existing, especially through danger", "am": "", "s": "Camels can {survive} for days without water.", "sp": "Camels can {remain alive} for days without water.", "t": "sub", "bf": ["endure", "survive"], "br": ["endure", "survive"]}, {"w": "travel", "a": "go from one place to another", "wm": "to go from one place to another, often far away", "am": "", "s": "We {travel} by train during the holidays.", "sp": "We {go from one place to another} by train during the holidays.", "t": "sub", "bf": ["return", "travel"], "br": ["return", "travel"]}, {"w": "transparent", "a": "able to be seen through", "wm": "clear enough to be seen through", "am": "", "s": "The window is {transparent}, so we can see the garden.", "sp": "The window is {able to be seen through}, so we can see the garden.", "t": "sub", "bf": ["transparent"], "br": ["transparent"]}, {"w": "uninhabited", "a": "not occupied", "wm": "with no people living there", "am": "", "s": "The ship landed on an {uninhabited} island.", "sp": "The ship landed on an island {not occupied} by anyone.", "t": "sub", "bf": ["alone", "uninhabited"], "br": ["alone", "uninhabited"]}, {"w": "useless", "a": "of no use", "wm": "of no use at all", "am": "", "s": "An umbrella with holes is {useless} in the rain.", "sp": "An umbrella with holes is {of no use} in the rain.", "t": "sub", "bf": ["idle", "useless"], "br": ["idle", "useless"]}, {"w": "vicinity", "a": "surrounding district", "wm": "the area around a place", "am": "", "s": "There are two playgrounds in the {vicinity} of our block.", "sp": "There are two playgrounds in the {surrounding district} of our block.", "t": "sub", "bf": ["distant", "vicinity"], "br": ["distant", "vicinity"]}, {"w": "weekly", "a": "once a week", "wm": "happening once every week", "am": "", "s": "We have {weekly} spelling tests at school.", "sp": "We have spelling tests at school {once a week}.", "t": "sub", "bf": ["weekly"], "br": ["weekly"]}, {"w": "whisper", "a": "speak softly", "wm": "to speak very softly", "am": "", "s": "Please {whisper} in the library.", "sp": "Please {speak softly} in the library.", "t": "sub", "bf": ["mute", "quiet", "whisper"], "br": ["mute", "quiet", "whisper"]}, {"w": "youth", "a": "young person", "wm": "a young person", "am": "", "s": "The {youth} helped the old lady carry her shopping.", "sp": "The {young person} helped the old lady carry her shopping.", "t": "sub", "bf": ["youth"], "br": ["youth"], "note": "\"Youth\" can also mean the time when someone is young."}];
+
+</script>
+<script>
+(function(){
+const ALL = ENTRIES.map((x,i)=>({i,key:x.w+"|"+x.a,word:x.w,syn:x.a,meaning:x.wm,am:x.am,sentence:x.s,note:x.note,type:x.t,g:x.g,fakes:x.fakes||[],bf:new Set(x.bf||[]),br:new Set(x.br||[]),skip:!!x.skip,grp:x.grp||null,sp:x.sp||"",tag:x.tag||"",book:x.book||"",lit:x.lit||"",adj:x.adj||"",nouns:x.nouns||null,noun:x.noun||"",front:x.front||""}));
+const W = ALL.filter(e=>!e.skip);
+const alts = a=>a.split("/").map(s=>s.trim());
+const show = a=>a.replace(/\//g," / ");
+const GL={};ALL.forEach(e=>{GL[e.word.toLowerCase()]=GL[e.word.toLowerCase()]||e.meaning;alts(e.syn).forEach(s=>{GL[s.toLowerCase()]=GL[s.toLowerCase()]||e.am})});
+const PAIRTERMS=[...new Set(W.filter(e=>e.type==="pair").flatMap(e=>[e.word,...alts(e.syn)]))];
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const cap = s=>s.charAt(0).toUpperCase()+s.slice(1);
+const gloss=w=>GL[String(w).toLowerCase()]||"";
+
+
+
+
+/* learner state: which words have been asked, and which are tricky */
+const LKEY=CHAPTER.key+"-learner", ROUND=10, MIX_AT=10, MIX_TRICKY=3, GRADUATE=2;
+let L={seen:{},tricky:[],updatedAt:0};
+try{const s=JSON.parse(localStorage.getItem(LKEY)||"null");if(s&&s.seen)L=s;else{const old=JSON.parse(localStorage.getItem(CHAPTER.key+"-tricky")||"[]");L.tricky=old}}catch(e){}
+let tricky=new Set(L.tricky);
+let learnerDirty=false;
+const saveL=()=>{L.tricky=[...tricky];L.updatedAt=Date.now();learnerDirty=true;try{localStorage.setItem(LKEY,JSON.stringify(L))}catch(e){}scheduleSave()};
+const saveTricky=saveL;
+const unseen=()=>W.filter(e=>!L.seen[e.key]);
+const lastAsked=e=>(L.seen[e.key]&&L.seen[e.key].last)||0;
+function record(word,ok){
+  const s=L.seen[word]||(L.seen[word]={n:0,ok:0,streak:0,last:0});
+  s.n++;s.last=Date.now();let graduated=false;
+  if(ok){s.ok++;s.streak++;if(tricky.has(word)&&s.streak>=GRADUATE){tricky.delete(word);graduated=true}}
+  else{s.streak=0;tricky.add(word)}
+  saveL();return graduated;
+}
+/* a round: 10 new words; once there are more than 10 tricky words, 3 tricky + 7 new.
+   When new words run out, fill with tricky words, then with the words seen longest ago. */
+function buildRound(){
+  const trk=W.filter(e=>tricky.has(e.key)).sort((a,b)=>lastAsked(a)-lastAsked(b));
+  const fresh=shuffle(unseen());
+  const pick=[];const add=list=>{for(const e of list){if(pick.length>=ROUND)break;if(!pick.includes(e))pick.push(e)}};
+  if(tricky.size>MIX_AT)add(trk.slice(0,MIX_TRICKY));
+  add(fresh);add(trk);
+  add(W.filter(e=>L.seen[e.key]&&!tricky.has(e.key)).sort((a,b)=>lastAsked(a)-lastAsked(b)));
+  const nNew=pick.filter(e=>!L.seen[e.key]).length,nTricky=pick.filter(e=>tricky.has(e.key)).length;
+  return {items:shuffle(pick),mix:{nNew,nTricky,nReview:pick.length-nNew-nTricky}};
+}
+
+let mode="quiz", setSel="round";
+try{const m=localStorage.getItem(CHAPTER.key+"-mode");if(m)mode=m}catch(e){}
+
+function fillSets(){
+  const sel=$("#set");const quizish=mode==="quiz"||mode==="reverse";
+  const opts=quizish?[["round","Next round (10 questions)"],["tricky",`Only my tricky words (${tricky.size})`]]
+                    :[["all",`All ${(mode==="list"?ALL:W).length} words`],["tricky",`My tricky words (${tricky.size})`]];
+  sel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join("");
+  if(!opts.some(o=>o[0]===setSel))setSel=opts[0][0];
+  sel.value=setSel;
+  const left=unseen().length;
+  $("#status").innerHTML=`New words left: <b>${left}</b> of ${W.length} · Tricky words: <b>${tricky.size}</b>`+(left===0?" · All words seen! Rounds are now review.":"");
+}
+function pool(){
+  if(setSel==="tricky")return W.filter(e=>tricky.has(e.key));
+  return mode==="list"?ALL:W;
+}
+
+const speakIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+function sayBtn(t){return `<button class="say" data-say="${esc(t)}" aria-label="Hear ${esc(t)}">${speakIcon}</button>`}
+function say(t){try{const s=window.speechSynthesis;if(!s)return;s.cancel();const v=new SpeechSynthesisUtterance(t);v.lang="en-GB";v.rate=.9;s.speak(v)}catch(e){}}
+function sentenceHTML(e,swap){
+  return esc(e.sentence).replace(/\{([^}]+)\}/,(_,w)=>`<span class="target">${w}</span>`+(swap&&CHAPTER.swapLabel?` <span style="color:var(--blue)">(${CHAPTER.swapLabel} ${esc(show(e.syn))})</span>`:""));
+}
+function phraseHTML(e){return esc(e.sp).replace(/\{([^}]+)\}/,(_,w)=>`<span class="target">${w}</span>`)}
+function simBlank(e,part){const b=`<span class="blank">______</span>`;return esc(e.sentence).replace(/\{([^}]+)\}/,()=>`<b>${part==="noun"?`as ${esc(e.adj)} as ${b}`:`as ${b} as ${esc(e.noun)}`}</b>`)}
+function blankHTML(e){return esc(e.sentence).replace(/\{([^}]+)\}/,`<span class="blank">______</span>`)}
+function ruleHTML(e){const r=CHAPTER.rules&&CHAPTER.rules[e.g];return r?`<p class="tip"><b>Rule:</b> ${r}</p>`:""}
+function tipHTML(e){return e.note?`<p class="tip"><b>Tip:</b> ${esc(e.note)}</p>`:""}
+
+/* ---------- quiz (forward + reverse) ---------- */
+let Q=null;
+function startQuiz(){
+  let items,mix=null;
+  if(setSel==="tricky"){const t=W.filter(e=>tricky.has(e.key)).sort((a,b)=>lastAsked(a)-lastAsked(b));if(!t.length){emptyTricky();return}items=shuffle(t.slice(0,ROUND))}
+  else{const r=buildRound();items=r.items;mix=r.mix}
+  const qs=items.map(makeQ);
+  Q={qs,k:0,score:0,missed:[],answered:false,rev:mode==="reverse",mix};
+  renderQ();
+}
+function pick3(list,skip){const out=[];for(const x of shuffle(list)){if(out.length===3)break;if(skip(x)||out.includes(x))continue;out.push(x)}return out}
+function makeQ(e){
+  const rev=mode==="reverse";
+  if(e.type==="sim"){
+    const strip=s=>s.toLowerCase().replace(/^(a|an|the) /,"");
+    const CL=(CHAPTER.clusters||[]).filter(g=>g.includes(e.adj)).flat();
+    const sameAdj=new Set([e.adj,...CL]);
+    if(!rev){
+      const mine=new Set(e.nouns.map(strip));
+      // nouns that go with this adjective or a near-synonym are never wrong answers
+      W.forEach(x=>{if(sameAdj.has(x.adj))x.nouns.forEach(n=>mine.add(strip(n)))});
+      const cand=[...new Set(W.filter(x=>x!==e).map(x=>x.noun))].filter(n=>!mine.has(strip(n)));
+      return {e,ans:e.noun,kind:"sim",opts:shuffle([e.noun,...pick3(cand,n=>false)])};
+    }
+    const n0=strip(e.noun);
+    const bad=new Set(sameAdj);W.forEach(x=>{if(x.nouns.some(n=>strip(n)===n0))bad.add(x.adj)});
+    const cand=[...new Set(W.map(x=>x.adj))].filter(a=>!bad.has(a));
+    return {e,ans:e.adj,kind:"simrev",opts:shuffle([e.adj,...pick3(cand,a=>false)])};
+  }
+  if(e.type==="prov"){
+    const o=W.filter(x=>x!==e);
+    return rev?{e,ans:e.word,ask:"",kind:"provrev",opts:shuffle([e.word,...pick3(o.map(x=>x.word),x=>false)])}
+              :{e,ans:e.syn,ask:e.word,kind:"prov",opts:shuffle([e.syn,...pick3(o.map(x=>x.syn),x=>false)])};
+  }
+  if(e.type==="pv"){
+    const base=CHAPTER.family===false?"\u0000":e.word.split(" ")[0];
+    const others=W.filter(x=>x.type==="pv"&&x.word!==e.word&&x.tag!==e.tag);
+    if(!rev){
+      const fam=shuffle(others.filter(x=>x.word.split(" ")[0]===base)),rest=shuffle(others);
+      const opts=[e.syn];for(const x of fam.concat(rest)){if(opts.length===4)break;if(!opts.includes(x.syn))opts.push(x.syn)}
+      const shown=(e.sentence.match(/\{([^}]+)\}/)||[,e.word])[1];
+      return {e,ans:e.syn,ask:shown,kind:"pv",opts:shuffle(opts)};
+    }
+    const badPV=new Set(W.filter(x=>x.type==="pv"&&x.tag===e.tag).map(x=>x.word));
+    const cand=[...new Set(W.filter(x=>x.type==="pv"&&!badPV.has(x.word)).map(x=>x.word))];
+    const fam=shuffle(cand.filter(w=>w.split(" ")[0]===base)),rest=shuffle(cand);
+    const opts=[e.word];for(const w of fam.concat(rest)){if(opts.length===4)break;if(!opts.includes(w))opts.push(w)}
+    return {e,ans:e.word,ask:e.syn,kind:"pvrev",opts:shuffle(opts)};
+  }
+  if(e.type==="sub"){
+    const pool=W.filter(x=>x!==e&&!e.bf.has(x.word));
+    return rev?{e,ans:e.syn,ask:e.word,kind:"subrev",opts:shuffle([e.syn,...pick3(pool.map(x=>x.syn),x=>x===e.syn)])}
+              :{e,ans:e.word,ask:e.syn,kind:"sub",opts:shuffle([e.word,...pick3(pool.map(x=>x.word),x=>x===e.word)])};
+  }
+  if(e.type==="homo"){
+    const ws=e.grp.map(g=>g.w);
+    return rev?{e,ans:e.word,ask:e.meaning,kind:"homorev",opts:shuffle(ws)}:{e,ans:e.word,ask:e.word,kind:"homo",opts:shuffle(ws)};
+  }
+  if(e.type==="prefix"){
+    if(!rev){
+      const plaus=e.fakes.filter(x=>/^(un|dis|in|im)/.test(x)||(x.startsWith("il")&&/^l/i.test(e.word))||(x.startsWith("ir")&&/^r/i.test(e.word)));
+      let fk=shuffle(plaus).slice(0,3);if(fk.length<3)fk=fk.concat(shuffle(e.fakes.filter(x=>!fk.includes(x))).slice(0,3-fk.length));
+      return {e,ans:e.syn,ask:e.word,kind:"prefix",opts:shuffle([e.syn,...fk])};
+    }
+    const o=pick3(W.filter(x=>x.type==="prefix").map(x=>x.word),x=>x===e.word);
+    return {e,ans:e.word,ask:e.syn,kind:"prefixrev",opts:shuffle([e.word,...o])};
+  }
+  if(e.type==="ful"){
+    const pool=W.filter(x=>x.type==="ful"&&x!==e).map(x=>rev?x.word:x.syn);
+    const ans=rev?e.word:e.syn;
+    return {e,ans,ask:rev?e.syn:e.word,kind:"ful",opts:shuffle([ans,...pick3(pool,x=>x===ans)])};
+  }
+  const A=alts(e.syn);
+  if(!rev){
+    const ans=A[Math.floor(Math.random()*A.length)];
+    const o=pick3(PAIRTERMS,x=>e.bf.has(x.toLowerCase())||x.toLowerCase()===e.word.toLowerCase()||A.includes(x));
+    return {e,ans,ask:e.word,kind:"pair",opts:shuffle([ans,...o])};
+  }
+  const o=pick3(PAIRTERMS,x=>e.br.has(x.toLowerCase())||x===e.word||A.includes(x));
+  return {e,ans:e.word,ask:show(e.syn),kind:"pair",opts:shuffle([e.word,...o])};
+}
+function renderQ(){
+  const {qs,k,score,rev}=Q;const q=qs[k];const e=q.e;
+  const pct=Math.round(k/qs.length*100);
+  $("#stage").innerHTML=`
+    <div class="meta"><span>Question ${k+1} of ${qs.length}</span><span>${Q.mix?mixLabel(Q.mix)+" · ":""}Score ${score}</span></div>
+    <div class="progress"><i style="width:${pct}%"></i></div>
+    ${q.kind==="sim"?`<p class="sentence">${simBlank(e,"noun")}</p><p class="ask">${CHAPTER.forwardPrompt()}</p>`
+     :q.kind==="simrev"?`<p class="sentence">${simBlank(e,"adj")}</p><p class="ask">${CHAPTER.reversePrompt()}</p>`
+     :q.kind==="provrev"?`<p class="sentence">${esc(e.sentence)}</p><p class="ask">${CHAPTER.reversePrompt()}</p>`
+     :q.kind==="prov"?`<p class="sentence" style="font-weight:700">“${esc(e.word)}”</p><p class="ask">${CHAPTER.forwardPrompt()} ${sayBtn(e.word)}</p>`
+     :rev?`<p class="ask">${CHAPTER.reversePrompt(esc(q.ask))} ${q.kind==="homorev"||q.kind==="subrev"||q.kind==="pvrev"?sayBtn(e.word):sayBtn(q.ask)}</p>`
+         :q.kind==="pv"?`<p class="sentence">${sentenceHTML(e)}</p><p class="ask">${CHAPTER.forwardPrompt(esc(q.ask))} ${sayBtn(q.ask)}</p>`
+         :q.kind==="sub"?`<p class="sentence">${phraseHTML(e)}</p><p class="ask">${CHAPTER.forwardPrompt(esc(e.syn))}</p>`
+         :q.kind==="homo"?`<p class="sentence">${blankHTML(e)}</p><p class="ask">${CHAPTER.forwardPrompt()} ${sayBtn(e.word)}</p><p class="hint">Tap the speaker to hear the word. All the choices sound the same, so think about the meaning.</p>`
+         :`<p class="sentence">${sentenceHTML(e)}</p><p class="ask">${(q.kind==="prefix"?CHAPTER.prefixPrompt:CHAPTER.forwardPrompt)(esc(e.word))} ${sayBtn(e.word)}</p>`}
+    <div class="opts">${q.opts.map((o,i)=>`<button class="opt" data-o="${esc(o)}"><span class="k">${"ABCD"[i]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div id="fb"></div>
+    <p class="hint">Tip: press 1–4 to answer and Enter for the next question.</p>`;
+  Q.answered=false;
+}
+function mixLabel(m){const p=[];if(m.nNew)p.push(m.nNew+" new");if(m.nTricky)p.push(m.nTricky+" tricky");if(m.nReview)p.push(m.nReview+" review");return p.join(", ")}
+function owner(t,rev){ // which list entry does a wrong option belong to?
+  return rev?W.find(x=>x.word===t):W.find(x=>x.syn===t);
+}
+function answer(o){
+  if(Q.answered)return;Q.answered=true;
+  const q=Q.qs[Q.k],e=q.e,ok=o===q.ans,rev=Q.rev;
+  document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;const v=b.dataset.o;if(v===q.ans)b.classList.add("right");else if(v===o)b.classList.add("wrong")});
+  const wasTricky=tricky.has(e.key);
+  if(ok){Q.score++;}else{Q.missed.push(e)}
+  const graduated=record(e.key,ok);fillSets();
+  track.q(ok,e.word);
+  let why="";
+  if(!ok){
+    if(q.kind==="prefix")why=`<p><b>${esc(o)}</b> is not a real word. The opposite of <b>${esc(e.word)}</b> is <b>${esc(e.syn)}</b>.</p>`;
+    else if(q.kind==="sim"){const w=W.find(x=>x.noun===o);why=w?`<p>“As ${esc(e.adj)} as ${esc(o)}” is not the saying. <b>${esc(cap(o))}</b> goes with <b>as ${esc(w.adj)} as ${esc(o)}</b>.</p>`:""}
+    else if(q.kind==="simrev"){const w=W.find(x=>x.adj===o);why=w?`<p>“As ${esc(o)} as ${esc(e.noun)}” is not the saying. The simile with <b>${esc(o)}</b> is <b>as ${esc(o)} as ${esc(w.noun)}</b>.</p>`:""}
+    else if(q.kind==="prov"){const w=W.find(x=>x.syn===o);why=w?`<p>You picked “${esc(o)}”. That is the meaning of <b>${esc(w.word)}</b>.</p>`:""}
+    else if(q.kind==="provrev"){const w=W.find(x=>x.word===o);why=w?`<p>You picked <b>${esc(o)}</b>, which means ${esc(w.syn)}.</p>`:""}
+    else if(q.kind==="pv"){const w=W.find(x=>x.syn===o);why=w?`<p>You picked “${esc(o)}”. That is what <b>${esc(w.word)}</b> means.</p>`:""}
+    else if(q.kind==="pvrev"){const ws=W.filter(x=>x.word===o).map(x=>x.syn);why=ws.length?`<p>You picked <b>${esc(o)}</b>, which means ${ws.map(esc).join(", or ")}.</p>`:""}
+    else if(q.kind==="subrev"){const w=W.find(x=>x.syn===o);why=w?`<p>You picked “${esc(o)}”. That phrase goes with <b>${esc(w.word)}</b>.</p>`:""}
+    else if(e.type==="sub"&&gloss(o))why=`<p>You picked <b>${esc(o)}</b>, which means ${esc(gloss(o))}.</p>`;
+    else if(e.grp)why=`<p>You picked <b>${esc(o)}</b>. It sounds the same, but it means ${esc(gloss(o))}.</p>`;
+    else if(gloss(o))why=`<p>You picked <b>${esc(o)}</b>, which means ${esc(gloss(o))}.</p>`;
+  }
+  const praise=["Well done!","Correct!","Yes, that’s right!","Great job!","Spot on!"];
+  $("#fb").innerHTML=`<div class="fb ${ok?"ok":"no"}">
+     <h3>${ok?praise[Math.floor(Math.random()*praise.length)]:`Not quite. The answer is “${esc(q.ans)}”.`}</h3>
+     ${e.type==="sim"?`<p><b>${esc(cap(e.word))}</b> means ${esc(e.syn)}.</p><p><b>Why:</b> ${esc(e.lit)}</p>`
+     :e.type==="prov"?`<p><b>“${esc(e.word)}”</b> means ${esc(e.syn)}.</p><p><b>Picture it:</b> ${esc(e.lit)}</p>`
+     :e.type==="pv"?`<p><b>${esc(cap(e.word))}</b> here means <b>${esc(e.syn)}</b>.</p>${(()=>{const o=W.filter(x=>x.word===e.word&&x!==e);return o.length?`<p>It can also mean: ${o.map(x=>esc(x.syn)).join("; ")}.</p>`:""})()}${e.lit?`<p><b>Picture it:</b> ${esc(e.lit)}</p>`:""}`
+     :e.grp?e.grp.map(g=>`<p${g.w===e.word?' style="font-weight:700"':""}><b>${esc(cap(g.w))}</b> means ${esc(g.m)}.</p>`).join(""):`<p><b>${esc(cap(e.word))}</b> means ${esc(e.meaning)}.</p>
+     ${e.am?`<p><b>${esc(cap(show(e.syn)))}</b> means ${esc(e.am)}.</p>`:""}`}
+     ${e.type==="pv"||e.type==="prov"||e.type==="sim"?"":`<p>${CHAPTER.relation(esc(e.word),esc(show(e.syn)))}</p>`}
+     ${ruleHTML(e)}
+     ${why}
+     <p class="sentence" style="font-size:17px">${e.type==="prov"?`<b>Example:</b> ${esc(e.sentence)}`:sentenceHTML(e,true)}</p>
+     ${tipHTML(e)}
+     ${graduated?`<p class="tip"><b>Nice!</b> Right twice in a row, so <b>${esc(e.word)}</b> is off your tricky list.</p>`
+       :ok&&wasTricky?`<p class="tip"><b>Good!</b> Get <b>${esc(e.word)}</b> right once more to take it off your tricky list.</p>`
+       :!ok?`<p class="tip"><b>${esc(e.word)}</b> is now on your tricky list. It will come back in later rounds.</p>`:""}
+   </div>
+   <div class="row" style="margin-top:12px"><button class="btn" id="next">${Q.k+1<Q.qs.length?"Next question":"See my score"}</button></div>`;
+  $("#next").focus({preventScroll:true});
+}
+function next(){Q.k++;if(Q.k<Q.qs.length)renderQ();else results()}
+function results(){
+  const {score,qs,missed}=Q;const pct=score/qs.length;
+  track.quiz();flush();
+  const msg=pct===1?"Perfect score!":pct>=.8?"Excellent work!":pct>=.5?"Good effort. Keep practising!":"Keep going. Every try helps you remember!";
+  fillSets();
+  $("#stage").innerHTML=`
+    <div class="row" style="justify-content:space-between"><div><div class="score">${score}/${qs.length}</div><p class="ask" style="margin-top:6px">${msg}</p></div></div>
+    ${missed.length?`<div><p class="ask" style="font-size:18px">Words to look at again</p>
+      <ul class="missed">${missed.map(e=>`<li><b>${esc(e.word)}</b> ${CHAPTER.joiner} <b style="color:var(--blue)">${esc(show(e.syn))}</b><br><span style="color:var(--muted)">${esc(cap(e.word))}: ${esc(e.meaning)}.${e.am?` ${esc(cap(show(e.syn)))}: ${esc(e.am)}.`:""}</span></li>`).join("")}</ul>
+      <p class="hint" style="margin-top:8px">These are on your tricky list. They will come back in later rounds until you get each one right twice in a row.</p></div>`:""}
+    <div class="row">
+      <button class="btn" id="again">Next round</button>
+      ${missed.length?`<button class="btn ghost" id="redo">Practise these again</button>`:""}
+    </div>`;
+  $("#again").onclick=startQuiz;
+  if(missed.length)$("#redo").onclick=()=>{const m=missed.slice();Q={qs:shuffle(m).map(e=>{const old=qs.find(x=>x.e===e);return {...old,opts:shuffle(old.opts)}}),k:0,score:0,missed:[],answered:false,rev:Q.rev};renderQ()};
+}
+function emptyTricky(){
+  $("#stage").innerHTML=`<p class="ask">No tricky words yet</p><p>Words you get wrong in a quiz, or mark “Still learning” on a flashcard, are saved here so you can practise them again. Choose another option above to start.</p>`;
+}
+
+/* ---------- flashcards ---------- */
+let F=null;
+function startLearn(){const p=pool();if(!p.length){emptyTricky();return}F={items:p.slice(),k:0,flip:false};renderF()}
+function renderF(){
+  const e=F.items[F.k];
+  $("#stage").innerHTML=`
+    <div class="meta"><span>Card ${F.k+1} of ${F.items.length}</span><span>${tricky.has(e.key)?"In my tricky words":""}</span></div>
+    <button class="flash" id="card" aria-label="Flip card">
+      <p class="big"${e.word.length>20?' style="font-size:clamp(22px,5vw,30px)"':""}>${esc(!F.flip&&e.front?e.front:e.word)}</p>
+      ${F.flip?`<span class="eq">${CHAPTER.pairWord}</span><p class="syn">${esc(show(e.syn))}</p>${e.am?`<p class="mean" style="font-size:15px;color:var(--muted)">(${esc(show(e.syn))}: ${esc(e.am)})</p>`:""}
+        ${e.meaning!==e.syn?`<p class="mean">${esc(cap(e.meaning))}.</p>`:""}${e.lit?`<p class="mean" style="font-size:15px;color:var(--muted)">${e.type==="sim"?"Why":"Picture it"}: ${esc(e.lit)}</p>`:""}<p class="sentence" style="font-size:18px">${sentenceHTML(e)}</p>${e.note?`<p class="mean" style="font-size:15px;color:var(--muted)">${esc(e.note)}</p>`:""}${CHAPTER.rules&&CHAPTER.rules[e.g]?`<p class="mean" style="font-size:15px;color:var(--muted)">${CHAPTER.rules[e.g]}</p>`:""}`
+      :`<span class="eq">${CHAPTER.cardHint}</span>`}
+    </button>
+    <div class="row" style="justify-content:space-between">
+      <div class="row">${sayBtn(e.word)}<button class="btn ghost" id="prev">Back</button><button class="btn ghost" id="shuf">Shuffle</button></div>
+      <div class="row">${F.flip?`<button class="btn ghost" id="learning">Still learning</button><button class="btn" id="know">I knew it</button>`:`<button class="btn" id="flip">Show answer</button>`}</div>
+    </div>`;
+  $("#card").onclick=()=>{F.flip=!F.flip;renderF()};
+  $("#prev").onclick=()=>{F.k=(F.k-1+F.items.length)%F.items.length;F.flip=false;renderF()};
+  $("#shuf").onclick=()=>{F.items=shuffle(F.items);F.k=0;F.flip=false;renderF()};
+  if(F.flip){
+    $("#know").onclick=()=>adv();
+    $("#learning").onclick=()=>{tricky.add(e.key);saveTricky();adv()};
+  }else $("#flip").onclick=()=>{F.flip=true;renderF()};
+}
+function adv(){track.card();fillSets();F.k=(F.k+1)%F.items.length;F.flip=false;renderF()}
+
+/* ---------- word list ---------- */
+function startList(){
+  $("#stage").innerHTML=`<input type="search" id="q" placeholder="Search a word or meaning" aria-label="Search">
+    <p class="hint" id="count"></p><ul class="wl" id="wl"></ul>`;
+  const draw=()=>{const t=$("#q").value.trim().toLowerCase();
+    const items=pool().filter(e=>!t||e.word.toLowerCase().includes(t)||e.syn.toLowerCase().includes(t)||e.meaning.toLowerCase().includes(t));
+    $("#count").textContent=`${items.length} word${items.length===1?"":"s"}. Tap “Tricky” to save a word for extra practice.`;
+    $("#wl").innerHTML=items.map(e=>`<li><div class="pair"><b>${esc(e.word)}</b> ${CHAPTER.joiner} <span>${esc(show(e.syn))}</span>${e.skip?` <small style="color:var(--bad)">(not in quizzes)</small>`:""}</div>
+      <button class="star" data-star="${esc(e.key)}" aria-pressed="${tricky.has(e.key)}">Tricky</button>
+      <div class="m"><b>${esc(e.word)}</b>: ${esc(e.meaning)}.${e.am?` <b>${esc(show(e.syn))}</b>: ${esc(e.am)}.`:""}<br><i>${esc(e.sentence.replace(/[{}]/g,""))}</i>${e.note?` <br>${/tip/i.test(e.note.slice(0,12))?"":"Tip: "}${esc(e.note)}`:""}</div></li>`).join("");};
+  $("#q").oninput=draw;draw();
+}
+
+
+/* ---------- usage tracking ---------- */
+const UKEY=CHAPTER.key+"-usage";
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+let U={days:{}};try{U=JSON.parse(localStorage.getItem(UKEY)||'{"days":{}}')}catch(e){}
+let DEV="";try{DEV=localStorage.getItem("vocab-device")||"";if(!DEV){DEV=Math.random().toString(36).slice(2,10);localStorage.setItem("vocab-device",DEV)}}catch(e){DEV=Math.random().toString(36).slice(2,10)}
+const day=()=>{const k=today();return U.days[k]||(U.days[k]={questions:0,correct:0,cards:0,quizzes:0,seconds:0,missed:[]})};
+const saveU=()=>{try{localStorage.setItem(UKEY,JSON.stringify(U))}catch(e){}};
+let DB=null,dirty=false,writing=false,REMOTE=null,remoteState="loading";
+const track={
+  q(ok,word){const d=day();d.questions++;if(ok)d.correct++;else if(!d.missed.includes(word)){d.missed.push(word);if(d.missed.length>60)d.missed.shift()}saveU();dirty=true;scheduleSave()},
+  card(){day().cards++;saveU();dirty=true;scheduleSave()},
+  quiz(){day().quizzes++;saveU();dirty=true;flush()}
+};
+/* count active time: page visible and touched in the last 90 s */
+let lastAct=Date.now();["pointerdown","keydown","scroll"].forEach(ev=>addEventListener(ev,()=>{lastAct=Date.now()},{passive:true,capture:true}));
+setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-lastAct<90000){day().seconds+=5;saveU();dirty=true}},5000);
+let saveState="checking",saveErr="",savedAt=null,pendingSave=false,saveTimer=null;
+function saveNote(){const el=document.getElementById("saveNote");if(!el)return;
+  const t=savedAt?savedAt.toLocaleTimeString("en-SG",{hour:"numeric",minute:"2-digit"}):"";
+  el.className="savenote "+saveState;
+  el.textContent=saveState==="checking"?"Checking where progress is saved…"
+    :saveState==="local"?"Not signed in to Claude: progress is saved on this device only."
+    :saveState==="saving"?"Saving progress to your account…"
+    :saveState==="saved"?`Progress saved to your account${t?" at "+t:""}.`
+    :saveState==="ready"?"Signed in: progress will be saved to your account."
+    :`Couldn’t save to your account (${saveErr}). Progress is kept on this device for now; it will retry. If the page says “Can view” at the top, ask for edit access.`}
+function scheduleSave(){if(!DB)return;clearTimeout(saveTimer);saveTimer=setTimeout(flush,1200)}
+async function flush(){
+  if(!DB)return;
+  if(writing){pendingSave=true;return}
+  if(!learnerDirty&&!dirty)return;
+  writing=true;pendingSave=false;saveState="saving";saveNote();
+  const errs=[];
+  if(dirty){dirty=false;const k=today(),d=day();
+    try{await DB.doc("usage/"+k+"_"+DEV).set({date:k,device:DEV,chapter:CHAPTER.num,questions:d.questions,correct:d.correct,cards:d.cards,quizzes:d.quizzes,seconds:d.seconds,missed:d.missed.slice(-60),updatedAt:new Date().toISOString()})}
+    catch(e){dirty=true;errs.push("daily record: "+((e&&(e.code||e.message))||"unknown"))}}
+  if(learnerDirty){learnerDirty=false;
+    try{await DB.doc("learner/main").set({items:Object.entries(L.seen).map(([k,v])=>({k,n:v.n||0,o:v.ok||0,s:v.streak||0,t:v.last||0})),tricky:[...tricky],updatedAt:L.updatedAt||Date.now()})}
+    catch(e){learnerDirty=true;errs.push("word progress: "+((e&&(e.code||e.message))||"unknown"))}}
+  if(errs.length){saveState="error";saveErr=errs.join("; ");setTimeout(flush,15000)}
+  else{saveState="saved";savedAt=new Date();saveErr=""}
+  writing=false;saveNote();
+  if(pendingSave)flush();
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush()});
+addEventListener("pagehide",()=>flush());
+(async()=>{
+  try{if(!window.claude?.use){saveState="local";saveNote();remoteState="none";return}
+    DB=await window.claude.use("db");
+    if(!DB){saveState="local";saveNote();remoteState="none";if(mode==="progress")startProgress();return}
+    saveState="ready";saveNote();
+    const timer=setTimeout(()=>{if(remoteState==="loading"){remoteState="slow";if(mode==="progress")startProgress()}},10000);
+    DB.collection("usage").onSnapshot(s=>{
+      if(!s.metadata?.fromCache){clearTimeout(timer)}
+      REMOTE=s.docs.map(x=>x.data());remoteState="ok";if(mode==="progress")startProgress();
+    },()=>{clearTimeout(timer);remoteState="none";if(mode==="progress")startProgress()});
+    try{const s=await DB.doc("learner/main").get();const r=s.exists?s.data():null;
+      let rs=null;if(r&&Array.isArray(r.items)){rs={};r.items.forEach(it=>{if(Array.isArray(it)){const [k,n,ok,streak,last]=it;rs[k]={n,ok,streak,last}}else if(it&&it.k)rs[it.k]={n:it.n,ok:it.o,streak:it.s,last:it.t}})}else if(r&&r.seen)rs=r.seen;
+      if(rs&&(r.updatedAt||0)>(L.updatedAt||0)){L={seen:rs,tricky:r.tricky||[],updatedAt:r.updatedAt};tricky=new Set(L.tricky);try{localStorage.setItem(LKEY,JSON.stringify(L))}catch(e){}fillSets();if(!Q||(Q.k===0&&!Q.answered))go()}
+      else if(L.updatedAt)learnerDirty=true;
+    }catch(e){}
+    const dd=day();if(dd.questions||dd.cards||dd.seconds)dirty=true;flush();
+  }catch(e){saveState="error";saveErr=(e&&(e.code||e.message))||"unknown";saveNote();remoteState="none"}
+})();
+const fmtTime=s=>{s=Math.round(s);if(s<60)return s?s+" sec":"0 min";const m=Math.round(s/60);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min"};
+function rows(){ // per-day totals, all devices
+  const by={};
+  const add=(k,d)=>{const r=by[k]||(by[k]={date:k,questions:0,correct:0,cards:0,quizzes:0,seconds:0,missed:new Set()});
+    r.questions+=d.questions||0;r.correct+=d.correct||0;r.cards+=d.cards||0;r.quizzes+=d.quizzes||0;r.seconds+=d.seconds||0;(d.missed||[]).forEach(w=>r.missed.add(w))};
+  if(REMOTE){REMOTE.forEach(d=>{if(d.device!==DEV)add(d.date,d)})}
+  Object.entries(U.days).forEach(([k,d])=>add(k,d)); // this device: local copy is always the freshest
+  return Object.values(by).sort((a,b)=>a.date<b.date?1:-1);
+}
+function sum(rs){return rs.reduce((a,r)=>({questions:a.questions+r.questions,correct:a.correct+r.correct,cards:a.cards+r.cards,seconds:a.seconds+r.seconds,days:a.days+1}),{questions:0,correct:0,cards:0,seconds:0,days:0})}
+function tile(lab,s){const acc=s.questions?Math.round(s.correct/s.questions*100)+"% correct":"no questions yet";
+  return `<div class="tile"><span class="lab">${lab}</span><span class="val">${fmtTime(s.seconds)}</span><span class="det">${s.questions} questions · ${acc}</span><span class="det">${s.cards} flashcard${s.cards===1?"":"s"}</span></div>`}
+function startProgress(){
+  flush();
+  const rs=rows();const t=today();
+  const wk=new Date();wk.setDate(wk.getDate()-6);const wkey=wk.getFullYear()+"-"+String(wk.getMonth()+1).padStart(2,"0")+"-"+String(wk.getDate()).padStart(2,"0");
+  const src=remoteState==="ok"?"Practice from every device that opens this page is added up here."
+    :remoteState==="loading"?"Loading practice from other devices…"
+    :remoteState==="slow"?"Can’t reach saved practice from other devices right now. Showing this device only."
+    :"Showing practice on this device only.";
+  const nice=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short"})};
+  $("#stage").innerHTML=`
+    <p class="ask">Practice record</p>
+    <p style="margin:0">Words practised: <b>${Object.keys(L.seen).length}</b> of ${W.length} · Tricky right now: <b>${tricky.size}</b> · Learned (right and not tricky): <b>${W.filter(e=>L.seen[e.key]&&!tricky.has(e.key)&&L.seen[e.key].ok>0).length}</b></p>
+    <div class="tiles">${tile("Today",sum(rs.filter(r=>r.date===t)))}${tile("Last 7 days",sum(rs.filter(r=>r.date>=wkey)))}${tile("All time",sum(rs))}</div>
+    ${rs.length?`<div class="tbl"><table><thead><tr><th>Day</th><th class="n">Time</th><th class="n">Qns</th><th class="n">Right</th><th class="n">Cards</th></tr></thead><tbody>
+      ${rs.map(r=>`<tr><td>${nice(r.date)}</td><td class="n">${fmtTime(r.seconds)}</td><td class="n">${r.questions}</td><td class="n">${r.questions?Math.round(r.correct/r.questions*100)+"%":"–"}</td><td class="n">${r.cards}</td></tr>${r.missed.size?`<tr><td colspan="5" style="font-size:14px;color:var(--muted);padding-top:0">Missed: ${esc([...r.missed].slice(0,15).join(", "))}${r.missed.size>15?` and ${r.missed.size-15} more`:""}</td></tr>`:""}`).join("")}
+      </tbody></table></div>`:`<p>No practice recorded yet. Time counts while the page is open and being used; each answered question and flashcard is added here.</p>`}
+    <p class="src">${src} Time only counts while the page is open and being used (it pauses after 90 seconds with no taps).</p>`;
+}
+
+/* ---------- wiring ---------- */
+function go(){
+  try{localStorage.setItem(CHAPTER.key+"-mode",mode)}catch(e){}
+  fillSets();
+  document.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===mode));
+  const quizish=mode==="quiz"||mode==="reverse";
+  $("#bar").hidden=mode==="progress";$("#status").hidden=mode==="progress";flush();
+  if(mode==="progress"){startProgress();return}
+  if(quizish)startQuiz();else if(mode==="learn")startLearn();else startList();
+}
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;setSel="";go()});
+$("#set").onchange=e=>{setSel=e.target.value;go()};
+document.addEventListener("click",ev=>{
+  const o=ev.target.closest(".opt");if(o&&Q){answer(o.dataset.o);return}
+  if(ev.target.closest("#next")){next();return}
+  const s=ev.target.closest("[data-say]");if(s){ev.stopPropagation();say(s.dataset.say);return}
+  const st=ev.target.closest("[data-star]");if(st){const w=st.dataset.star;tricky.has(w)?tricky.delete(w):tricky.add(w);saveTricky();st.setAttribute("aria-pressed",tricky.has(w));fillSets();}
+},true);
+document.addEventListener("keydown",ev=>{
+  if(!(mode==="quiz"||mode==="reverse")||!Q||ev.target.tagName==="INPUT"||ev.target.tagName==="SELECT")return;
+  if(!Q.answered&&/^[1-4]$/.test(ev.key)){const b=document.querySelectorAll(".opt")[+ev.key-1];if(b)answer(b.dataset.o)}
+  else if(Q.answered&&ev.key==="Enter"&&document.activeElement?.id!=="next"){ev.preventDefault();next()}
+});
+
+$("#title").textContent=CHAPTER.title;
+$("#sub").textContent=`Chapter ${CHAPTER.num} · ${W.length} ${CHAPTER.unit||"words"} · ${CHAPTER.pages}`;
+$("#rule").innerHTML=CHAPTER.rule;
+$("#foot").textContent=`Words from Chapter ${CHAPTER.num} (${CHAPTER.pages}). Meanings and example sentences are written in simple English for practice.`;
+fillSets();go();
+})();
+</script>
+</body></html>
