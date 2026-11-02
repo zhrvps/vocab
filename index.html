@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>English Vocabulary Practice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a workbook contents page — name line, then one row per chapter with its progress. */
+:root{
+  --paper:#F6F8FC; --surface:#FFFFFF; --ink:#18233A; --muted:#5B6782; --line:#D6DDEB;
+  --blue:#2350C8; --blue-soft:#E3EAFB; --hl:#FFE066; --good:#1E8A4C; --bad:#C23B3B;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{--paper:#0F1626;--surface:#172238;--ink:#E8EDF7;--muted:#9AA6C0;--line:#2B3954;--blue:#7FA2FF;--blue-soft:#1F2D4D;--hl:#8A6F00;--good:#5BD08A;--bad:#FF8A80;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:760px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1{margin:0;font:800 clamp(30px,6vw,42px)/1.05 var(--display);text-wrap:balance}
+h1 mark{background:linear-gradient(transparent 55%,var(--hl) 55%);color:inherit}
+.sub{margin:4px 0 0;color:var(--muted)}
+.who{font-size:15px;color:var(--muted)}
+.who button{background:none;border:0;padding:0;color:var(--blue);text-decoration:underline;font:inherit;cursor:pointer}
+.list{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.ch{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:6px 14px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:inherit}
+.ch:hover{border-color:var(--blue)}
+.num{width:56px;height:50px;border:3px solid var(--ink);display:grid;place-items:center;font:800 26px/1 var(--display)}
+.name{font:700 21px/1.15 var(--display)}
+.meta{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{grid-column:2/-1;height:6px;background:var(--blue-soft);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue)}
+.go{font:700 16px/1 var(--display);color:var(--blue)}
+.note{font-size:13px;color:var(--muted)}
+.note.err{color:var(--bad)}
+form{display:flex;gap:10px;flex-wrap:wrap}
+input{flex:1 1 200px;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:18px}
+.btn{border:0;border-radius:12px;padding:12px 20px;font:700 18px/1 var(--display);background:var(--blue);color:var(--surface);cursor:pointer}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+@media (max-width:480px){.ch{grid-template-columns:56px minmax(0,1fr)}.go{display:none}.num{width:50px;height:46px;font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>English <mark>Vocabulary</mark> Practice</h1>
+    <p class="sub">Chapters 54–61 · synonyms, antonyms, homophones, one-word substitution, phrasal verbs, proverbs, idioms and similes</p>
+  </header>
+  <div id="who" class="who"></div>
+  <div id="main"></div>
+  <p id="note" class="note"></p>
+</div>
+<script>
+const SUPA={url:"https://yezqrwjtwwhnuawmjeod.supabase.co",key:"sb_publishable_HTl05cHUNd1LJ_-ai8GaAw_oXjk-NCT"};
+const CH=[
+  {n:54,t:"Synonyms",f:"ch54.html",total:322,u:"words"},
+  {n:55,t:"Antonyms",f:"ch55.html",total:385,u:"words"},
+  {n:56,t:"Homophones",f:"ch56.html",total:312,u:"words"},
+  {n:57,t:"One-word Substitution",f:"ch57.html",total:100,u:"words"},
+  {n:58,t:"Phrasal Verbs",f:"ch58.html",total:190,u:"meanings"},
+  {n:59,t:"Proverbs",f:"ch59.html",total:19,u:"proverbs"},
+  {n:60,t:"Idioms",f:"ch60.html",total:163,u:"idioms"},
+  {n:61,t:"Similes",f:"ch61.html",total:119,u:"similes"}];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cleanName=s=>String(s||"").trim().replace(/[^A-Za-z0-9 _-]/g,"").slice(0,30);
+let LEARNER="";try{LEARNER=localStorage.getItem("vocab-learner")||""}catch(e){}
+const fmt=s=>{s=Math.round(s||0);if(s<60)return s?s+" sec":"0 min";const m=Math.round(s/60);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min"};
+
+function render(stats){
+  $("#main").innerHTML=`<ul class="list">${CH.map(c=>{const s=stats&&stats[c.n];
+    const seen=s?s.seen:0,pct=Math.round(seen/c.total*100);
+    const line=s?`${fmt(s.seconds)} practised · ${s.questions} questions${s.questions?` · ${Math.round(s.correct/s.questions*100)}% right`:""} · ${seen} of ${c.total} ${c.u} seen · ${s.tricky} tricky`
+                :`${c.total} ${c.u}`;
+    return `<li><a class="ch" href="${c.f}"><span class="num">${c.n}</span><span><span class="name">${esc(c.t)}</span><br><span class="meta">${line}</span></span><span class="go">Practise →</span>${s?`<span class="bar"><i style="width:${pct}%"></i></span>`:""}</a></li>`}).join("")}</ul>`;
+}
+async function load(){
+  render(null);
+  $("#note").textContent="Loading progress…";
+  try{
+    const r=await fetch(`${SUPA.url}/rest/v1/vocab_progress?learner=eq.${encodeURIComponent(LEARNER)}&select=chapter,kind,data`,{headers:{apikey:SUPA.key}});
+    if(!r.ok)throw new Error("error "+r.status);
+    const rows=await r.json(),stats={};
+    rows.forEach(({chapter,kind,data})=>{const s=stats[chapter]||(stats[chapter]={seconds:0,questions:0,correct:0,seen:0,tricky:0});
+      if(kind==="usage"){s.seconds+=data.seconds||0;s.questions+=data.questions||0;s.correct+=data.correct||0}
+      else if(kind==="learner"){s.seen=(data.items||[]).length;s.tricky=(data.tricky||[]).length}});
+    render(stats);
+    $("#note").className="note";$("#note").textContent=rows.length?"Progress is saved online and adds up across all devices.":"No practice saved yet. Pick a chapter to start.";
+  }catch(e){$("#note").className="note err";$("#note").textContent="Couldn’t load progress right now ("+e.message+"). You can still practise; it will be saved when the connection works."}
+}
+function start(){
+  if(!LEARNER){
+    $("#who").textContent="";
+    $("#main").innerHTML=`<div class="card"><b style="font:700 22px/1.2 var(--display)">Who is practising?</b><p style="margin:0">Type your name once. Your progress is saved online under this name, so you can carry on from any device.</p><form id="f"><input id="nm" maxlength="30" placeholder="Your name" autocomplete="off"><button class="btn">Start</button></form><span class="note">Use the same name every time, on every device.</span></div>`;
+    $("#f").onsubmit=e=>{e.preventDefault();const n=cleanName($("#nm").value);if(!n)return;try{localStorage.setItem("vocab-learner",n)}catch(x){}LEARNER=n;start()};
+    $("#nm").focus();return;
+  }
+  $("#who").innerHTML=`Practising as <b>${esc(LEARNER)}</b> · <button id="chg">Change name</button>`;
+  $("#chg").onclick=()=>{try{localStorage.removeItem("vocab-learner")}catch(e){}LEARNER="";start()};
+  load();
+}
+start();
+</script>
+</body>
+</html>
