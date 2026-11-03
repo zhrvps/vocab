@@ -48,6 +48,7 @@ tr.day td{background:var(--paper);font-weight:700}
 .pc{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:4px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .pc .bar{height:8px;background:var(--grid);border-radius:6px;overflow:hidden;grid-column:1/-1}
 .pc .bar i{display:block;height:100%}
+.dg{border-top:1px solid var(--line);padding:6px 0}.dg:first-child{border-top:0}.dg summary{cursor:pointer;padding:6px 0;font-size:16px}
 .note{font-size:13px;color:var(--muted)} .note.err{color:var(--bad)}
 .good{color:var(--good)} .badc{color:var(--bad)}
 :focus-visible{outline:3px solid var(--en);outline-offset:2px}
@@ -76,9 +77,9 @@ tr.day td{background:var(--paper);font-weight:700}
 <script>
 const SUPA={url:"https://yezqrwjtwwhnuawmjeod.supabase.co",key:"sb_publishable_HTl05cHUNd1LJ_-ai8GaAw_oXjk-NCT"};
 /* Chapter names and sizes. English chapters are 54–61; Chinese chapters are numbered from 600 (e.g. 601). Add Chinese lesson names here when known, e.g. 601:["第一课 到户外去",40]. */
-const NAMES={54:["Synonyms",322],55:["Antonyms",385],56:["Homophones",312],57:["One-word Substitution",100],58:["Phrasal Verbs",190],59:["Proverbs",19],60:["Idioms",163],61:["Similes",119]};
-const subjOf=c=>c>=600?"zh":"en";
-const chName=c=>NAMES[c]?`Ch ${c} ${NAMES[c][0]}`:(c>=600?`中文 ${c}`:`Chapter ${c}`);
+const NAMES={54:["Synonyms",322],55:["Antonyms",385],56:["Homophones",312],57:["One-word Substitution",100],58:["Phrasal Verbs",190],59:["Proverbs",19],60:["Idioms",163],61:["Similes",119],601:["欢乐伙伴 6A",0],/*WW-START*/4001:["Wordly Wise 4 · Lesson 1",35],4002:["Wordly Wise 4 · Lesson 2",30],4003:["Wordly Wise 4 · Lesson 3",31],4004:["Wordly Wise 4 · Lesson 4",37],4005:["Wordly Wise 4 · Lesson 5",29],4006:["Wordly Wise 4 · Lesson 6",26],4007:["Wordly Wise 4 · Lesson 7",32],4008:["Wordly Wise 4 · Lesson 8",30],4009:["Wordly Wise 4 · Lesson 9",29],4010:["Wordly Wise 4 · Lesson 10",28],4011:["Wordly Wise 4 · Lesson 11",33],4012:["Wordly Wise 4 · Lesson 12",31],4013:["Wordly Wise 4 · Lesson 13",34],4014:["Wordly Wise 4 · Lesson 14",28],4015:["Wordly Wise 4 · Lesson 15",30],4016:["Wordly Wise 4 · Lesson 16",28],4017:["Wordly Wise 4 · Lesson 17",32],4018:["Wordly Wise 4 · Lesson 18",26],4019:["Wordly Wise 4 · Lesson 19",28],4020:["Wordly Wise 4 · Lesson 20",33],5001:["Wordly Wise 5 · Lesson 1",27],5002:["Wordly Wise 5 · Lesson 2",34],5003:["Wordly Wise 5 · Lesson 3",30],5004:["Wordly Wise 5 · Lesson 4",29],5005:["Wordly Wise 5 · Lesson 5",29],5006:["Wordly Wise 5 · Lesson 6",28],5007:["Wordly Wise 5 · Lesson 7",36],5008:["Wordly Wise 5 · Lesson 8",29],5009:["Wordly Wise 5 · Lesson 9",29],5010:["Wordly Wise 5 · Lesson 10",31],5011:["Wordly Wise 5 · Lesson 11",33],5012:["Wordly Wise 5 · Lesson 12",28],5013:["Wordly Wise 5 · Lesson 13",25],5014:["Wordly Wise 5 · Lesson 14",31],5015:["Wordly Wise 5 · Lesson 15",31],5016:["Wordly Wise 5 · Lesson 16",31],5017:["Wordly Wise 5 · Lesson 17",25],5018:["Wordly Wise 5 · Lesson 18",31],5019:["Wordly Wise 5 · Lesson 19",27],5020:["Wordly Wise 5 · Lesson 20",31],6001:["Wordly Wise 6 · Lesson 1",33],6002:["Wordly Wise 6 · Lesson 2",33],6003:["Wordly Wise 6 · Lesson 3",24],6004:["Wordly Wise 6 · Lesson 4",25],6005:["Wordly Wise 6 · Lesson 5",25],6006:["Wordly Wise 6 · Lesson 6",34],6007:["Wordly Wise 6 · Lesson 7",32],6008:["Wordly Wise 6 · Lesson 8",28],6009:["Wordly Wise 6 · Lesson 9",31],6010:["Wordly Wise 6 · Lesson 10",35],6011:["Wordly Wise 6 · Lesson 11",31],6012:["Wordly Wise 6 · Lesson 12",25],6013:["Wordly Wise 6 · Lesson 13",33],6014:["Wordly Wise 6 · Lesson 14",31],6015:["Wordly Wise 6 · Lesson 15",32],6016:["Wordly Wise 6 · Lesson 16",28],6017:["Wordly Wise 6 · Lesson 17",29],6018:["Wordly Wise 6 · Lesson 18",27],6019:["Wordly Wise 6 · Lesson 19",34],6020:["Wordly Wise 6 · Lesson 20",27],7001:["Wordly Wise 7 · Lesson 1",29],7002:["Wordly Wise 7 · Lesson 2",28],7003:["Wordly Wise 7 · Lesson 3",29],7004:["Wordly Wise 7 · Lesson 4",29],7005:["Wordly Wise 7 · Lesson 5",29],7006:["Wordly Wise 7 · Lesson 6",29],7007:["Wordly Wise 7 · Lesson 7",27],7008:["Wordly Wise 7 · Lesson 8",27],7009:["Wordly Wise 7 · Lesson 9",32],7010:["Wordly Wise 7 · Lesson 10",25],7011:["Wordly Wise 7 · Lesson 11",33],7012:["Wordly Wise 7 · Lesson 12",30],7013:["Wordly Wise 7 · Lesson 13",23],7014:["Wordly Wise 7 · Lesson 14",24],7015:["Wordly Wise 7 · Lesson 15",30],7016:["Wordly Wise 7 · Lesson 16",30],7017:["Wordly Wise 7 · Lesson 17",30],7018:["Wordly Wise 7 · Lesson 18",30],7019:["Wordly Wise 7 · Lesson 19",31],7020:["Wordly Wise 7 · Lesson 20",29]/*WW-END*/};
+const subjOf=c=>(c>=600&&c<700)?"zh":"en";
+const chName=c=>NAMES[c]?(c>=600?NAMES[c][0]:`Ch ${c} ${NAMES[c][0]}`):(c>=600&&c<700?`中文 ${c}`:c>=1000?`Wordly Wise ${Math.floor(c/1000)} · Lesson ${c%1000}`:`Chapter ${c}`);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const mins=s=>Math.round((s||0)/60);
@@ -86,7 +87,7 @@ const fmt=s=>{s=Math.round(s||0);if(s<60)return s?s+" sec":"0 min";const m=Math.
 const pct=(c,q)=>q?Math.round(c/q*100)+"%":"–";
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const nice=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short"})};
-let ROWS=[];
+let ROWS=[];let DOPEN={};try{DOPEN=JSON.parse(localStorage.getItem("dash-open")||"{}")}catch(e){}
 try{const s=JSON.parse(localStorage.getItem("dash-filters")||"{}");if(s.range)$("#range").value=s.range;if(s.subj)$("#subj").value=s.subj}catch(e){}
 
 async function load(){
@@ -152,11 +153,16 @@ function render(){
   // chapter progress (from word-progress records)
   const allTime={};usage.forEach(x=>{const d=x.data||{};const a=allTime[x.chapter]||(allTime[x.chapter]={seconds:0,q:0});a.seconds+=d.seconds||0;a.q+=d.questions||0});
   const chs=[...new Set([...learnerRows.map(x=>x.chapter),...Object.keys(allTime).map(Number)])].sort((a,b)=>a-b);
-  $("#chapters").innerHTML=chs.length?chs.map(ch=>{const lr=learnerRows.find(x=>x.chapter===ch);const items=(lr&&lr.data&&lr.data.items)||[];const tricky=(lr&&lr.data&&lr.data.tricky)||[];
+  const pcRow=ch=>{const lr=learnerRows.find(x=>x.chapter===ch);const items=(lr&&lr.data&&lr.data.items)||[];const tricky=(lr&&lr.data&&lr.data.tricky)||[];
     const total=NAMES[ch]?NAMES[ch][1]:0;const seen=items.length;const learned=items.filter(it=>(it.o||0)>0&&!tricky.includes(it.k)).length;const a=allTime[ch]||{seconds:0,q:0};
     const p=total?Math.round(seen/total*100):0;
-    return `<div class="pc"><div><span class="tag ${subjOf(ch)}">${subjOf(ch)==="en"?"EN":"中文"}</span><b>${esc(chName(ch))}</b><br><span class="note">${seen}${total?" of "+total:""} seen · ${learned} learned · ${tricky.length} tricky · ${fmt(a.seconds)} all time · ${a.q} questions</span></div><div class="note" style="text-align:right">${total?p+"% seen":""}</div><div class="bar"><i style="width:${p}%;background:var(--${subjOf(ch)})"></i></div></div>`}).join("")
+    return `<div class="pc"><div><span class="tag ${subjOf(ch)}">${subjOf(ch)==="en"?"EN":"中文"}</span><b>${esc(chName(ch))}</b><br><span class="note">${seen}${total?" of "+total:""} seen · ${learned} learned · ${tricky.length} tricky · ${fmt(a.seconds)} all time · ${a.q} questions</span></div><div class="note" style="text-align:right">${total?p+"% seen":""}</div><div class="bar"><i style="width:${p}%;background:var(--${subjOf(ch)})"></i></div></div>`};
+  const grpOf=ch=>ch>=1000?`Wordly Wise ${Math.floor(ch/1000)}`:(ch>=600&&ch<700?"欢乐伙伴":"Vocabulary Book · Chapters 54–61");
+  const G=[];chs.forEach(ch=>{const g=grpOf(ch);let x=G.find(y=>y.g===g);if(!x)G.push(x={g,c:[]});x.c.push(ch)});
+  $("#chapters").innerHTML=chs.length?G.map(x=>{const at=x.c.reduce((s,ch)=>{const v=allTime[ch]||{seconds:0,q:0};return {s:s.s+v.seconds,q:s.q+v.q}},{s:0,q:0});
+    return `<details class="dg" data-g="${esc(x.g)}"${DOPEN[x.g]?" open":""}><summary><b>${esc(x.g)}</b> <span class="note">· ${x.c.length} started · ${fmt(at.s)} · ${at.q} questions</span></summary>${x.c.map(pcRow).join("")}</details>`}).join("")
     :`<p class="note">No chapters started yet.</p>`;
+  document.querySelectorAll("details.dg").forEach(d=>d.addEventListener("toggle",()=>{DOPEN[d.dataset.g]=d.open;try{localStorage.setItem("dash-open",JSON.stringify(DOPEN))}catch(e){}}));
 }
 ["#who","#range","#subj"].forEach(s=>$(s).addEventListener("change",render));
 let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(ROWS.length)render()},200)});

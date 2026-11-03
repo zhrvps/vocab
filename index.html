@@ -23,6 +23,18 @@ h1 mark{background:linear-gradient(transparent 55%,var(--hl) 55%);color:inherit}
 .sub{margin:4px 0 0;color:var(--muted)}
 .who{font-size:15px;color:var(--muted)}
 .who button{background:none;border:0;padding:0;color:var(--blue);text-decoration:underline;font:inherit;cursor:pointer}
+.grp{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:0;overflow:hidden}
+.grp+.grp{margin-top:12px}
+.grp summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.grp summary::-webkit-details-marker{display:none}
+.grp summary::after{content:"Show ▾";grid-column:2;grid-row:1;font:700 15px/1 var(--display);color:var(--blue)}
+.grp[open] summary::after{content:"Hide ▴"}
+.gname{font:800 23px/1.15 var(--display)}
+.grp summary .meta{grid-column:1/-1}
+.gbar{grid-column:1/-1;height:6px;background:var(--blue-soft);border-radius:6px;overflow:hidden;display:block}
+.gbar i{display:block;height:100%;background:var(--blue)}
+.grp .list{padding:0 12px 12px}
+.grp .ch{border-width:1px;padding:10px 12px}
 .list{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
 .ch{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:6px 14px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:inherit}
 .ch:hover{border-color:var(--blue)}
@@ -46,7 +58,7 @@ input{flex:1 1 200px;background:var(--surface);color:var(--ink);border:2px solid
 <div class="wrap">
   <header>
     <h1>English <mark>Vocabulary</mark> Practice</h1>
-    <p class="sub">Chapters 54–61 · synonyms, antonyms, homophones, one-word substitution, phrasal verbs, proverbs, idioms and similes</p>
+    <p class="sub">Chapters 54–61 and Wordly Wise lessons</p>
   </header>
   <div id="who" class="who"></div>
   <div id="main"></div>
@@ -62,19 +74,110 @@ const CH=[
   {n:58,t:"Phrasal Verbs",f:"ch58.html",total:190,u:"meanings"},
   {n:59,t:"Proverbs",f:"ch59.html",total:19,u:"proverbs"},
   {n:60,t:"Idioms",f:"ch60.html",total:163,u:"idioms"},
-  {n:61,t:"Similes",f:"ch61.html",total:119,u:"similes"}];
+  {n:61,t:"Similes",f:"ch61.html",total:119,u:"similes"}/*WW-START*/,
+  {n:4001,label:"WW4 L1",t:"Wordly Wise 4 · Lesson 1",f:"ww4-01.html",total:35,u:"meanings"},
+  {n:4002,label:"WW4 L2",t:"Wordly Wise 4 · Lesson 2",f:"ww4-02.html",total:30,u:"meanings"},
+  {n:4003,label:"WW4 L3",t:"Wordly Wise 4 · Lesson 3",f:"ww4-03.html",total:31,u:"meanings"},
+  {n:4004,label:"WW4 L4",t:"Wordly Wise 4 · Lesson 4",f:"ww4-04.html",total:37,u:"meanings"},
+  {n:4005,label:"WW4 L5",t:"Wordly Wise 4 · Lesson 5",f:"ww4-05.html",total:29,u:"meanings"},
+  {n:4006,label:"WW4 L6",t:"Wordly Wise 4 · Lesson 6",f:"ww4-06.html",total:26,u:"meanings"},
+  {n:4007,label:"WW4 L7",t:"Wordly Wise 4 · Lesson 7",f:"ww4-07.html",total:32,u:"meanings"},
+  {n:4008,label:"WW4 L8",t:"Wordly Wise 4 · Lesson 8",f:"ww4-08.html",total:30,u:"meanings"},
+  {n:4009,label:"WW4 L9",t:"Wordly Wise 4 · Lesson 9",f:"ww4-09.html",total:29,u:"meanings"},
+  {n:4010,label:"WW4 L10",t:"Wordly Wise 4 · Lesson 10",f:"ww4-10.html",total:28,u:"meanings"},
+  {n:4011,label:"WW4 L11",t:"Wordly Wise 4 · Lesson 11",f:"ww4-11.html",total:33,u:"meanings"},
+  {n:4012,label:"WW4 L12",t:"Wordly Wise 4 · Lesson 12",f:"ww4-12.html",total:31,u:"meanings"},
+  {n:4013,label:"WW4 L13",t:"Wordly Wise 4 · Lesson 13",f:"ww4-13.html",total:34,u:"meanings"},
+  {n:4014,label:"WW4 L14",t:"Wordly Wise 4 · Lesson 14",f:"ww4-14.html",total:28,u:"meanings"},
+  {n:4015,label:"WW4 L15",t:"Wordly Wise 4 · Lesson 15",f:"ww4-15.html",total:30,u:"meanings"},
+  {n:4016,label:"WW4 L16",t:"Wordly Wise 4 · Lesson 16",f:"ww4-16.html",total:28,u:"meanings"},
+  {n:4017,label:"WW4 L17",t:"Wordly Wise 4 · Lesson 17",f:"ww4-17.html",total:32,u:"meanings"},
+  {n:4018,label:"WW4 L18",t:"Wordly Wise 4 · Lesson 18",f:"ww4-18.html",total:26,u:"meanings"},
+  {n:4019,label:"WW4 L19",t:"Wordly Wise 4 · Lesson 19",f:"ww4-19.html",total:28,u:"meanings"},
+  {n:4020,label:"WW4 L20",t:"Wordly Wise 4 · Lesson 20",f:"ww4-20.html",total:33,u:"meanings"},
+  {n:5001,label:"WW5 L1",t:"Wordly Wise 5 · Lesson 1",f:"ww5-01.html",total:27,u:"meanings"},
+  {n:5002,label:"WW5 L2",t:"Wordly Wise 5 · Lesson 2",f:"ww5-02.html",total:34,u:"meanings"},
+  {n:5003,label:"WW5 L3",t:"Wordly Wise 5 · Lesson 3",f:"ww5-03.html",total:30,u:"meanings"},
+  {n:5004,label:"WW5 L4",t:"Wordly Wise 5 · Lesson 4",f:"ww5-04.html",total:29,u:"meanings"},
+  {n:5005,label:"WW5 L5",t:"Wordly Wise 5 · Lesson 5",f:"ww5-05.html",total:29,u:"meanings"},
+  {n:5006,label:"WW5 L6",t:"Wordly Wise 5 · Lesson 6",f:"ww5-06.html",total:28,u:"meanings"},
+  {n:5007,label:"WW5 L7",t:"Wordly Wise 5 · Lesson 7",f:"ww5-07.html",total:36,u:"meanings"},
+  {n:5008,label:"WW5 L8",t:"Wordly Wise 5 · Lesson 8",f:"ww5-08.html",total:29,u:"meanings"},
+  {n:5009,label:"WW5 L9",t:"Wordly Wise 5 · Lesson 9",f:"ww5-09.html",total:29,u:"meanings"},
+  {n:5010,label:"WW5 L10",t:"Wordly Wise 5 · Lesson 10",f:"ww5-10.html",total:31,u:"meanings"},
+  {n:5011,label:"WW5 L11",t:"Wordly Wise 5 · Lesson 11",f:"ww5-11.html",total:33,u:"meanings"},
+  {n:5012,label:"WW5 L12",t:"Wordly Wise 5 · Lesson 12",f:"ww5-12.html",total:28,u:"meanings"},
+  {n:5013,label:"WW5 L13",t:"Wordly Wise 5 · Lesson 13",f:"ww5-13.html",total:25,u:"meanings"},
+  {n:5014,label:"WW5 L14",t:"Wordly Wise 5 · Lesson 14",f:"ww5-14.html",total:31,u:"meanings"},
+  {n:5015,label:"WW5 L15",t:"Wordly Wise 5 · Lesson 15",f:"ww5-15.html",total:31,u:"meanings"},
+  {n:5016,label:"WW5 L16",t:"Wordly Wise 5 · Lesson 16",f:"ww5-16.html",total:31,u:"meanings"},
+  {n:5017,label:"WW5 L17",t:"Wordly Wise 5 · Lesson 17",f:"ww5-17.html",total:25,u:"meanings"},
+  {n:5018,label:"WW5 L18",t:"Wordly Wise 5 · Lesson 18",f:"ww5-18.html",total:31,u:"meanings"},
+  {n:5019,label:"WW5 L19",t:"Wordly Wise 5 · Lesson 19",f:"ww5-19.html",total:27,u:"meanings"},
+  {n:5020,label:"WW5 L20",t:"Wordly Wise 5 · Lesson 20",f:"ww5-20.html",total:31,u:"meanings"},
+  {n:6001,label:"WW6 L1",t:"Wordly Wise 6 · Lesson 1",f:"ww6-01.html",total:33,u:"meanings"},
+  {n:6002,label:"WW6 L2",t:"Wordly Wise 6 · Lesson 2",f:"ww6-02.html",total:33,u:"meanings"},
+  {n:6003,label:"WW6 L3",t:"Wordly Wise 6 · Lesson 3",f:"ww6-03.html",total:24,u:"meanings"},
+  {n:6004,label:"WW6 L4",t:"Wordly Wise 6 · Lesson 4",f:"ww6-04.html",total:25,u:"meanings"},
+  {n:6005,label:"WW6 L5",t:"Wordly Wise 6 · Lesson 5",f:"ww6-05.html",total:25,u:"meanings"},
+  {n:6006,label:"WW6 L6",t:"Wordly Wise 6 · Lesson 6",f:"ww6-06.html",total:34,u:"meanings"},
+  {n:6007,label:"WW6 L7",t:"Wordly Wise 6 · Lesson 7",f:"ww6-07.html",total:32,u:"meanings"},
+  {n:6008,label:"WW6 L8",t:"Wordly Wise 6 · Lesson 8",f:"ww6-08.html",total:28,u:"meanings"},
+  {n:6009,label:"WW6 L9",t:"Wordly Wise 6 · Lesson 9",f:"ww6-09.html",total:31,u:"meanings"},
+  {n:6010,label:"WW6 L10",t:"Wordly Wise 6 · Lesson 10",f:"ww6-10.html",total:35,u:"meanings"},
+  {n:6011,label:"WW6 L11",t:"Wordly Wise 6 · Lesson 11",f:"ww6-11.html",total:31,u:"meanings"},
+  {n:6012,label:"WW6 L12",t:"Wordly Wise 6 · Lesson 12",f:"ww6-12.html",total:25,u:"meanings"},
+  {n:6013,label:"WW6 L13",t:"Wordly Wise 6 · Lesson 13",f:"ww6-13.html",total:33,u:"meanings"},
+  {n:6014,label:"WW6 L14",t:"Wordly Wise 6 · Lesson 14",f:"ww6-14.html",total:31,u:"meanings"},
+  {n:6015,label:"WW6 L15",t:"Wordly Wise 6 · Lesson 15",f:"ww6-15.html",total:32,u:"meanings"},
+  {n:6016,label:"WW6 L16",t:"Wordly Wise 6 · Lesson 16",f:"ww6-16.html",total:28,u:"meanings"},
+  {n:6017,label:"WW6 L17",t:"Wordly Wise 6 · Lesson 17",f:"ww6-17.html",total:29,u:"meanings"},
+  {n:6018,label:"WW6 L18",t:"Wordly Wise 6 · Lesson 18",f:"ww6-18.html",total:27,u:"meanings"},
+  {n:6019,label:"WW6 L19",t:"Wordly Wise 6 · Lesson 19",f:"ww6-19.html",total:34,u:"meanings"},
+  {n:6020,label:"WW6 L20",t:"Wordly Wise 6 · Lesson 20",f:"ww6-20.html",total:27,u:"meanings"},
+  {n:7001,label:"WW7 L1",t:"Wordly Wise 7 · Lesson 1",f:"ww7-01.html",total:29,u:"meanings"},
+  {n:7002,label:"WW7 L2",t:"Wordly Wise 7 · Lesson 2",f:"ww7-02.html",total:28,u:"meanings"},
+  {n:7003,label:"WW7 L3",t:"Wordly Wise 7 · Lesson 3",f:"ww7-03.html",total:29,u:"meanings"},
+  {n:7004,label:"WW7 L4",t:"Wordly Wise 7 · Lesson 4",f:"ww7-04.html",total:29,u:"meanings"},
+  {n:7005,label:"WW7 L5",t:"Wordly Wise 7 · Lesson 5",f:"ww7-05.html",total:29,u:"meanings"},
+  {n:7006,label:"WW7 L6",t:"Wordly Wise 7 · Lesson 6",f:"ww7-06.html",total:29,u:"meanings"},
+  {n:7007,label:"WW7 L7",t:"Wordly Wise 7 · Lesson 7",f:"ww7-07.html",total:27,u:"meanings"},
+  {n:7008,label:"WW7 L8",t:"Wordly Wise 7 · Lesson 8",f:"ww7-08.html",total:27,u:"meanings"},
+  {n:7009,label:"WW7 L9",t:"Wordly Wise 7 · Lesson 9",f:"ww7-09.html",total:32,u:"meanings"},
+  {n:7010,label:"WW7 L10",t:"Wordly Wise 7 · Lesson 10",f:"ww7-10.html",total:25,u:"meanings"},
+  {n:7011,label:"WW7 L11",t:"Wordly Wise 7 · Lesson 11",f:"ww7-11.html",total:33,u:"meanings"},
+  {n:7012,label:"WW7 L12",t:"Wordly Wise 7 · Lesson 12",f:"ww7-12.html",total:30,u:"meanings"},
+  {n:7013,label:"WW7 L13",t:"Wordly Wise 7 · Lesson 13",f:"ww7-13.html",total:23,u:"meanings"},
+  {n:7014,label:"WW7 L14",t:"Wordly Wise 7 · Lesson 14",f:"ww7-14.html",total:24,u:"meanings"},
+  {n:7015,label:"WW7 L15",t:"Wordly Wise 7 · Lesson 15",f:"ww7-15.html",total:30,u:"meanings"},
+  {n:7016,label:"WW7 L16",t:"Wordly Wise 7 · Lesson 16",f:"ww7-16.html",total:30,u:"meanings"},
+  {n:7017,label:"WW7 L17",t:"Wordly Wise 7 · Lesson 17",f:"ww7-17.html",total:30,u:"meanings"},
+  {n:7018,label:"WW7 L18",t:"Wordly Wise 7 · Lesson 18",f:"ww7-18.html",total:30,u:"meanings"},
+  {n:7019,label:"WW7 L19",t:"Wordly Wise 7 · Lesson 19",f:"ww7-19.html",total:31,u:"meanings"},
+  {n:7020,label:"WW7 L20",t:"Wordly Wise 7 · Lesson 20",f:"ww7-20.html",total:29,u:"meanings"}/*WW-END*/];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cleanName=s=>String(s||"").trim().replace(/[^A-Za-z0-9 _-]/g,"").slice(0,30);
 let LEARNER="";try{LEARNER=localStorage.getItem("vocab-learner")||""}catch(e){}
 const fmt=s=>{s=Math.round(s||0);if(s<60)return s?s+" sec":"0 min";const m=Math.round(s/60);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min"};
 
+const groupOf=c=>c.n>=1000?`Wordly Wise ${Math.floor(c.n/1000)}`:"Vocabulary Book · Chapters 54–61";
+let OPEN={};try{OPEN=JSON.parse(localStorage.getItem("home-open")||"{}")}catch(e){}
+function row(c,s){
+  const seen=s?s.seen:0,pct=Math.round(seen/c.total*100);
+  const line=s?`${fmt(s.seconds)} · ${s.questions} questions${s.questions?` · ${Math.round(s.correct/s.questions*100)}% right`:""} · ${seen}/${c.total} seen · ${s.tricky} tricky`:`${c.total} ${c.u}`;
+  const short=c.n>=1000?`L${c.n%1000}`:c.n, name=c.n>=1000?`Lesson ${c.n%1000}`:c.t;
+  return `<li><a class="ch" href="${c.f}"><span class="num">${short}</span><span><span class="name">${esc(name)}</span><br><span class="meta">${line}</span></span><span class="go">Practise →</span>${s?`<span class="bar"><i style="width:${pct}%"></i></span>`:""}</a></li>`;
+}
 function render(stats){
-  $("#main").innerHTML=`<ul class="list">${CH.map(c=>{const s=stats&&stats[c.n];
-    const seen=s?s.seen:0,pct=Math.round(seen/c.total*100);
-    const line=s?`${fmt(s.seconds)} practised · ${s.questions} questions${s.questions?` · ${Math.round(s.correct/s.questions*100)}% right`:""} · ${seen} of ${c.total} ${c.u} seen · ${s.tricky} tricky`
-                :`${c.total} ${c.u}`;
-    return `<li><a class="ch" href="${c.f}"><span class="num">${c.n}</span><span><span class="name">${esc(c.t)}</span><br><span class="meta">${line}</span></span><span class="go">Practise →</span>${s?`<span class="bar"><i style="width:${pct}%"></i></span>`:""}</a></li>`}).join("")}</ul>`;
+  const groups=[];CH.forEach(c=>{const g=groupOf(c);let G=groups.find(x=>x.g===g);if(!G)groups.push(G={g,items:[]});G.items.push(c)});
+  $("#main").innerHTML=groups.map(G=>{
+    let sec=0,q=0,cor=0,seen=0,total=0,started=0;
+    G.items.forEach(c=>{const s=stats&&stats[c.n];total+=c.total;if(s){sec+=s.seconds;q+=s.questions;cor+=s.correct;seen+=s.seen;if(s.seen||s.questions)started++}});
+    const open=G.g in OPEN?OPEN[G.g]:groups.length===1;
+    const summary=stats?`${G.items.length} ${G.g.startsWith("Wordly")?"lessons":"chapters"} · ${started} started · ${fmt(sec)}${q?` · ${Math.round(cor/q*100)}% right`:""}`:`${G.items.length} ${G.g.startsWith("Wordly")?"lessons":"chapters"}`;
+    return `<details class="grp" data-g="${esc(G.g)}"${open?" open":""}><summary><span class="gname">${esc(G.g)}</span><span class="meta">${summary}</span>${stats&&total?`<span class="gbar"><i style="width:${Math.round(seen/total*100)}%"></i></span>`:""}</summary><ul class="list">${G.items.map(c=>row(c,stats&&stats[c.n])).join("")}</ul></details>`}).join("");
+  document.querySelectorAll("details.grp").forEach(d=>d.addEventListener("toggle",()=>{OPEN[d.dataset.g]=d.open;try{localStorage.setItem("home-open",JSON.stringify(OPEN))}catch(e){}}));
 }
 async function load(){
   render(null);
