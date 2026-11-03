@@ -75,10 +75,10 @@ tr.day td{background:var(--paper);font-weight:700}
 </div>
 <script>
 const SUPA={url:"https://yezqrwjtwwhnuawmjeod.supabase.co",key:"sb_publishable_HTl05cHUNd1LJ_-ai8GaAw_oXjk-NCT"};
-/* Chapter names and sizes. Chinese chapters use numbers from 1001; add their names here when known. */
+/* Chapter names and sizes. English chapters are 54–61; Chinese chapters are numbered from 600 (e.g. 601). Add Chinese lesson names here when known, e.g. 601:["第一课 到户外去",40]. */
 const NAMES={54:["Synonyms",322],55:["Antonyms",385],56:["Homophones",312],57:["One-word Substitution",100],58:["Phrasal Verbs",190],59:["Proverbs",19],60:["Idioms",163],61:["Similes",119]};
-const subjOf=c=>c>=1000?"zh":"en";
-const chName=c=>NAMES[c]?`Ch ${c} ${NAMES[c][0]}`:(c>=1000?`中文 ${c}`:`Chapter ${c}`);
+const subjOf=c=>c>=600?"zh":"en";
+const chName=c=>NAMES[c]?`Ch ${c} ${NAMES[c][0]}`:(c>=600?`中文 ${c}`:`Chapter ${c}`);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const mins=s=>Math.round((s||0)/60);
