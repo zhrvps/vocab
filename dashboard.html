@@ -57,6 +57,8 @@ tr.day td{background:var(--paper);font-weight:700}
 .tbar{height:12px;background:var(--grid);border-radius:6px;overflow:hidden}.tbar i{display:block;height:100%;background:var(--en);border-radius:6px}
 .tabln{font-size:13px;color:var(--muted);margin-top:2px}
 @media (max-width:520px){.tb{grid-template-columns:100px minmax(0,1fr) 60px}}
+tr.les td{font-size:14px;color:var(--muted);padding-top:4px;padding-bottom:4px}
+tr.les td:first-child{padding-left:34px}
 </style>
 </head>
 <body>
@@ -114,6 +116,13 @@ async function load(){
 const TABS=[["quiz","Quiz"],["reverse","Find the word"],["learn","Flashcards"],["list","Word list"],["progress","Progress page"]];
 const addTo=(o,src)=>{for(const k in (src||{}))o[k]=(o[k]||0)+(+src[k]||0);return o};
 const tabLine=c=>{const p=TABS.filter(([t])=>(c.tabs[t]||0)>=5).map(([t,l])=>`${l} ${fmt(c.tabs[t])}`+(t==="learn"&&c.flips?` (${c.flips} flipped)`:""));return p.length?`<div class="tabln">${p.join(" · ")}</div>`:""};
+const LESSON_NAMES={601:["加油！加油！","祖孙情","美食小侦探","宝贵的礼物","小故事，大道理","精彩三国","世界走透透"]};
+const CN_NUM="一二三四五六七八九十";
+const lessonName=(ch,n)=>`第${CN_NUM[n-1]||n}课`+(LESSON_NAMES[ch]&&LESSON_NAMES[ch][n-1]?`《${LESSON_NAMES[ch][n-1]}》`:"");
+const lessonRows=(ch,c)=>{const ks=Object.keys(c.ls||{}).map(Number).filter(n=>{const l=c.ls[n];return l.s||l.q||l.cards}).sort((a,b)=>a-b);if(!ks.length)return "";
+  const rest=c.seconds-ks.reduce((a,n)=>a+c.ls[n].s,0);
+  return ks.map(n=>{const l=c.ls[n];return `<tr class="les"><td>${esc(lessonName(ch,n))}</td><td class="n">${fmt(l.s)}</td><td class="n">${l.q}</td><td class="n ${l.q?(l.c/l.q>=.8?"good":l.c/l.q<.5?"badc":""):""}">${pct(l.c,l.q)}</td><td class="n">${l.cards}</td><td></td></tr>`}).join("")
+   +(rest>=60?`<tr class="les"><td>Not split by lesson</td><td class="n">${fmt(rest)}</td><td></td><td></td><td></td><td></td></tr>`:"")};
 function render(){
   const who=$("#who").value,days=+$("#range").value,subj=$("#subj").value;
   try{localStorage.setItem("dash-filters",JSON.stringify({who,range:days,subj}))}catch(e){}
@@ -124,8 +133,8 @@ function render(){
   const from=dates[0];
   // per day per chapter (devices summed)
   const byDay={};usage.forEach(x=>{const d=x.data||{};if(!d.date||d.date<from)return;
-    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set(),tabs:{},tq:{},flips:0});
-    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w));addTo(c.tabs,d.tabs);addTo(c.tq,d.tq);c.flips+=d.flips||0});
+    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set(),tabs:{},tq:{},flips:0,ls:{}});
+    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w));addTo(c.tabs,d.tabs);addTo(c.tq,d.tq);c.flips+=d.flips||0;for(const n in (d.ls||{})){const a=d.ls[n]||{},l=c.ls[n]||(c.ls[n]={s:0,q:0,c:0,cards:0});l.s+=a.s||0;l.q+=a.q||0;l.c+=a.c||0;l.cards+=a.cards||0}});
   const dayTot=k=>Object.entries(byDay[k]||{}).reduce((a,[ch,c])=>{a.seconds+=c.seconds;a.q+=c.questions;a.c+=c.correct;a.cards+=c.cards;a[subjOf(+ch)]+=c.seconds;return a},{seconds:0,q:0,c:0,cards:0,en:0,zh:0});
   // KPIs
   const tk=ymd(today),T=dayTot(tk);
@@ -163,7 +172,7 @@ function render(){
   const shown=dates.slice().reverse().filter(k=>byDay[k]);
   $("#log").innerHTML=shown.length?`<table><thead><tr><th>Day / chapter</th><th class="n">Time</th><th class="n">Questions</th><th class="n">Right</th><th class="n">Cards</th><th>Words missed</th></tr></thead><tbody>${
     shown.map(k=>{const t=dayTot(k);return `<tr class="day"><td>${nice(k)}</td><td class="n">${fmt(t.seconds)}</td><td class="n">${t.q}</td><td class="n">${pct(t.c,t.q)}</td><td class="n">${t.cards}</td><td></td></tr>`+
-      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}${tabLine(c)}</td><td class="n">${fmt(c.seconds)}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`).join("")}).join("")
+      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}${tabLine(c)}</td><td class="n">${fmt(c.seconds)}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`+lessonRows(+ch,c)).join("")}).join("")
   }</tbody></table>`:`<p class="note">No practice in this period.</p>`;
   // chapter progress (from word-progress records)
   const allTime={};usage.forEach(x=>{const d=x.data||{};const a=allTime[x.chapter]||(allTime[x.chapter]={seconds:0,q:0});a.seconds+=d.seconds||0;a.q+=d.questions||0});
