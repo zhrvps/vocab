@@ -466,15 +466,15 @@ function renderF(){
       <div class="row">${sayBtn(e.word)}<button class="btn ghost" id="prev">Back</button><button class="btn ghost" id="shuf">Shuffle</button></div>
       <div class="row">${F.flip?`<button class="btn ghost" id="learning">Still learning</button><button class="btn" id="know">I knew it</button>`:`<button class="btn" id="flip">Show answer</button>`}</div>
     </div>`;
-  $("#card").onclick=()=>{F.flip=!F.flip;renderF()};
+  $("#card").onclick=()=>{F.flip=!F.flip;if(F.flip)track.flip();renderF()};
   $("#prev").onclick=()=>{F.k=(F.k-1+F.items.length)%F.items.length;F.flip=false;renderF()};
   $("#shuf").onclick=()=>{F.items=shuffle(F.items);F.k=0;F.flip=false;renderF()};
   if(F.flip){
     $("#know").onclick=()=>adv();
     $("#learning").onclick=()=>{tricky.add(e.key);saveTricky();adv()};
-  }else $("#flip").onclick=()=>{F.flip=true;renderF()};
+  }else $("#flip").onclick=()=>{F.flip=true;track.flip();renderF()};
 }
-function adv(){track.card();fillSets();F.k=(F.k+1)%F.items.length;F.flip=false;renderF()}
+function adv(){track.card();F.fc=false;fillSets();F.k=(F.k+1)%F.items.length;F.flip=false;renderF()}
 
 /* ---------- word list ---------- */
 function startList(){
@@ -499,13 +499,14 @@ const day=()=>{const k=today();return U.days[k]||(U.days[k]={questions:0,correct
 const saveU=()=>{try{localStorage.setItem(UKEY,JSON.stringify(U))}catch(e){}};
 let DB=null,dirty=false,writing=false,REMOTE=null,remoteState="loading";
 const track={
-  q(ok,word){const d=day();d.questions++;if(ok)d.correct++;else if(!d.missed.includes(word)){d.missed.push(word);if(d.missed.length>60)d.missed.shift()}saveU();dirty=true;scheduleSave()},
+  q(ok,word){const d=day();d.questions++;const tq=d.tq||(d.tq={});tq[mode]=(tq[mode]||0)+1;if(ok)d.correct++;else if(!d.missed.includes(word)){d.missed.push(word);if(d.missed.length>60)d.missed.shift()}saveU();dirty=true;scheduleSave()},
   card(){day().cards++;saveU();dirty=true;scheduleSave()},
+  flip(){if(F.fc)return;F.fc=true;const d=day();d.flips=(d.flips||0)+1;saveU();dirty=true;scheduleSave()},
   quiz(){day().quizzes++;saveU();dirty=true;flush()}
 };
 /* count active time: page visible and touched in the last 90 s */
 let lastAct=Date.now();["pointerdown","keydown","scroll"].forEach(ev=>addEventListener(ev,()=>{lastAct=Date.now()},{passive:true,capture:true}));
-setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-lastAct<90000){day().seconds+=5;saveU();dirty=true}},5000);
+setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-lastAct<(mode==="list"||mode==="progress"?90000:30000)){const d=day();d.seconds+=5;const t=d.tabs||(d.tabs={});t[mode]=(t[mode]||0)+5;saveU();dirty=true}},5000);
 let saveState="checking",saveErr="",savedAt=null,pendingSave=false,saveTimer=null;
 function saveNote(){const el=document.getElementById("saveNote");if(!el)return;
   const t=savedAt?savedAt.toLocaleTimeString("en-SG",{hour:"numeric",minute:"2-digit"}):"";
@@ -524,7 +525,7 @@ async function flush(){
   writing=true;pendingSave=false;saveState="saving";saveNote();
   const errs=[];
   if(dirty){dirty=false;const k=today(),d=day();
-    try{await DB.doc("usage/"+k+"_"+DEV).set({date:k,device:DEV,chapter:CHAPTER.num,questions:d.questions,correct:d.correct,cards:d.cards,quizzes:d.quizzes,seconds:d.seconds,missed:d.missed.slice(-60),updatedAt:new Date().toISOString()})}
+    try{await DB.doc("usage/"+k+"_"+DEV).set({date:k,device:DEV,chapter:CHAPTER.num,questions:d.questions,correct:d.correct,cards:d.cards,quizzes:d.quizzes,seconds:d.seconds,tabs:d.tabs||{},tq:d.tq||{},flips:d.flips||0,missed:d.missed.slice(-60),updatedAt:new Date().toISOString()})}
     catch(e){dirty=true;errs.push("daily record: "+((e&&(e.code||e.message))||"unknown"))}}
   if(learnerDirty){learnerDirty=false;
     try{await DB.doc("learner/main").set({items:Object.entries(L.seen).map(([k,v])=>({k,n:v.n||0,o:v.ok||0,s:v.streak||0,t:v.last||0})),tricky:[...tricky],updatedAt:L.updatedAt||Date.now()})}
@@ -583,7 +584,7 @@ function startProgress(){
     ${rs.length?`<div class="tbl"><table><thead><tr><th>Day</th><th class="n">Time</th><th class="n">Qns</th><th class="n">Right</th><th class="n">Cards</th></tr></thead><tbody>
       ${rs.map(r=>`<tr><td>${nice(r.date)}</td><td class="n">${fmtTime(r.seconds)}</td><td class="n">${r.questions}</td><td class="n">${r.questions?Math.round(r.correct/r.questions*100)+"%":"–"}</td><td class="n">${r.cards}</td></tr>${r.missed.size?`<tr><td colspan="5" style="font-size:14px;color:var(--muted);padding-top:0">Missed: ${esc([...r.missed].slice(0,15).join(", "))}${r.missed.size>15?` and ${r.missed.size-15} more`:""}</td></tr>`:""}`).join("")}
       </tbody></table></div>`:`<p>No practice recorded yet. Time counts while the page is open and being used; each answered question and flashcard is added here.</p>`}
-    <p class="src">${src} Time only counts while the page is open and being used (it pauses after 90 seconds with no taps).</p>`;
+    <p class="src">${src} Time only counts while the page is open and being used (it pauses after 30 seconds with no taps, or 90 seconds on the word list).</p>`;
 }
 
 /* ---------- wiring ---------- */

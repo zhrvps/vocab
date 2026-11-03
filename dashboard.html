@@ -52,6 +52,11 @@ tr.day td{background:var(--paper);font-weight:700}
 .note{font-size:13px;color:var(--muted)} .note.err{color:var(--bad)}
 .good{color:var(--good)} .badc{color:var(--bad)}
 :focus-visible{outline:3px solid var(--en);outline-offset:2px}
+.tb{display:grid;grid-template-columns:130px minmax(0,1fr) 70px;gap:4px 10px;align-items:center;padding:6px 0}
+.tb .tl{font-weight:600}.tb .tv{text-align:right;font-variant-numeric:tabular-nums}.tb .td{grid-column:2/-1;margin:0}
+.tbar{height:12px;background:var(--grid);border-radius:6px;overflow:hidden}.tbar i{display:block;height:100%;background:var(--en);border-radius:6px}
+.tabln{font-size:13px;color:var(--muted);margin-top:2px}
+@media (max-width:520px){.tb{grid-template-columns:100px minmax(0,1fr) 60px}}
 </style>
 </head>
 <body>
@@ -71,6 +76,7 @@ tr.day td{background:var(--paper);font-weight:700}
   <p class="note" id="note">Loading…</p>
   <section class="kpis" id="kpis"></section>
   <section class="panel"><h2>Minutes practised per day</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></section>
+  <section class="panel"><h2>Time by tab</h2><div id="tabs"></div></section>
   <section class="panel"><h2>Daily activity</h2><div class="tbl" id="log"></div></section>
   <section class="panel"><h2>Chapter progress</h2><div id="chapters"></div></section>
 </div>
@@ -105,6 +111,9 @@ async function load(){
     render();
   }catch(e){$("#note").className="note err";$("#note").textContent="Couldn’t load data ("+e.message+"). Check the internet connection and press Refresh."}
 }
+const TABS=[["quiz","Quiz"],["reverse","Find the word"],["learn","Flashcards"],["list","Word list"],["progress","Progress page"]];
+const addTo=(o,src)=>{for(const k in (src||{}))o[k]=(o[k]||0)+(+src[k]||0);return o};
+const tabLine=c=>{const p=TABS.filter(([t])=>(c.tabs[t]||0)>=5).map(([t,l])=>`${l} ${fmt(c.tabs[t])}`+(t==="learn"&&c.flips?` (${c.flips} flipped)`:""));return p.length?`<div class="tabln">${p.join(" · ")}</div>`:""};
 function render(){
   const who=$("#who").value,days=+$("#range").value,subj=$("#subj").value;
   try{localStorage.setItem("dash-filters",JSON.stringify({who,range:days,subj}))}catch(e){}
@@ -115,8 +124,8 @@ function render(){
   const from=dates[0];
   // per day per chapter (devices summed)
   const byDay={};usage.forEach(x=>{const d=x.data||{};if(!d.date||d.date<from)return;
-    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set()});
-    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w))});
+    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set(),tabs:{},tq:{},flips:0});
+    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w));addTo(c.tabs,d.tabs);addTo(c.tq,d.tq);c.flips+=d.flips||0});
   const dayTot=k=>Object.entries(byDay[k]||{}).reduce((a,[ch,c])=>{a.seconds+=c.seconds;a.q+=c.questions;a.c+=c.correct;a.cards+=c.cards;a[subjOf(+ch)]+=c.seconds;return a},{seconds:0,q:0,c:0,cards:0,en:0,zh:0});
   // KPIs
   const tk=ymd(today),T=dayTot(tk);
@@ -144,11 +153,17 @@ function render(){
     series.forEach(s=>{if(v[s]>0){svg+=`<rect x="${cx-bw/2}" y="${y(base+v[s])}" width="${bw}" height="${y(base)-y(base+v[s])}" fill="var(--${s})" rx="2"><title>${nice(v.k)}: ${v[s]} min ${s==="en"?"English":"Chinese"}</title></rect>`;base+=v[s]}});
     if(i%every===0||i===days-1){const [,m,d]=v.k.split("-");svg+=`<text x="${cx}" y="${H-8}" text-anchor="middle">${+d}/${+m}</text>`}});
   svg+=`</svg>`;$("#chart").innerHTML=svg;
+  // time by tab (selected period)
+  const TT={},TQ={};let tsec=0,tcards=0,tflips=0;dates.forEach(k=>Object.values(byDay[k]||{}).forEach(c=>{addTo(TT,c.tabs);addTo(TQ,c.tq);tsec+=c.seconds;tcards+=c.cards;tflips+=c.flips}));
+  const split=TABS.reduce((a,[t])=>a+(TT[t]||0),0),rest=Math.max(0,tsec-split);
+  const rowsT=TABS.filter(([t])=>t!=="progress"||TT[t]).map(([t,lab])=>[lab,TT[t]||0,t==="quiz"||t==="reverse"?`${TQ[t]||0} questions`:t==="learn"?`${tflips} cards flipped to see the meaning · ${tcards} rated (I know it / Still learning)`:""]).concat(rest>=60?[["Not split by tab",rest,"older pages, or before tab tracking started"]]:[]);
+  const maxT=Math.max(1,...rowsT.map(r=>r[1]));
+  $("#tabs").innerHTML=(tsec||tflips||tcards||Object.keys(TQ).length)?rowsT.map(([l,v,d])=>`<div class="tb"><span class="tl">${l}</span><span class="tbar"><i style="width:${Math.round(v/maxT*100)}%"></i></span><span class="tv">${fmt(v)}</span><span class="td note">${d}</span></div>`).join(""):`<p class="note">No practice in this period.</p>`;
   // log
   const shown=dates.slice().reverse().filter(k=>byDay[k]);
   $("#log").innerHTML=shown.length?`<table><thead><tr><th>Day / chapter</th><th class="n">Time</th><th class="n">Questions</th><th class="n">Right</th><th class="n">Cards</th><th>Words missed</th></tr></thead><tbody>${
     shown.map(k=>{const t=dayTot(k);return `<tr class="day"><td>${nice(k)}</td><td class="n">${fmt(t.seconds)}</td><td class="n">${t.q}</td><td class="n">${pct(t.c,t.q)}</td><td class="n">${t.cards}</td><td></td></tr>`+
-      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}</td><td class="n">${fmt(c.seconds)}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`).join("")}).join("")
+      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}${tabLine(c)}</td><td class="n">${fmt(c.seconds)}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`).join("")}).join("")
   }</tbody></table>`:`<p class="note">No practice in this period.</p>`;
   // chapter progress (from word-progress records)
   const allTime={};usage.forEach(x=>{const d=x.data||{};const a=allTime[x.chapter]||(allTime[x.chapter]={seconds:0,q:0});a.seconds+=d.seconds||0;a.q+=d.questions||0});
