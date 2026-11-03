@@ -78,7 +78,7 @@ tr.les td:first-child{padding-left:34px}
   <p class="note" id="note">Loading…</p>
   <section class="kpis" id="kpis"></section>
   <section class="panel"><h2>Minutes practised per day</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></section>
-  <section class="panel"><h2>Time by tab</h2><div id="tabs"></div></section>
+  <section class="panel"><h2>Time by tab <span class="note" style="font-weight:400">(English)</span></h2><div id="tabs"></div></section>
   <section class="panel"><h2>Daily activity</h2><div class="tbl" id="log"></div></section>
   <section class="panel"><h2>Chapter progress</h2><div id="chapters"></div></section>
 </div>
@@ -163,9 +163,9 @@ function render(){
     if(i%every===0||i===days-1){const [,m,d]=v.k.split("-");svg+=`<text x="${cx}" y="${H-8}" text-anchor="middle">${+d}/${+m}</text>`}});
   svg+=`</svg>`;$("#chart").innerHTML=svg;
   // time by tab (selected period)
-  const TT={},TQ={};let tsec=0,tcards=0,tflips=0;dates.forEach(k=>Object.values(byDay[k]||{}).forEach(c=>{addTo(TT,c.tabs);addTo(TQ,c.tq);tsec+=c.seconds;tcards+=c.cards;tflips+=c.flips}));
+  const TT={},TQ={};let tsec=0,tcards=0,tflips=0;dates.forEach(k=>Object.entries(byDay[k]||{}).filter(([ch])=>subjOf(+ch)==="en").map(([,c])=>c).forEach(c=>{addTo(TT,c.tabs);addTo(TQ,c.tq);tsec+=c.seconds;tcards+=c.cards;tflips+=c.flips}));
   const split=TABS.reduce((a,[t])=>a+(TT[t]||0),0),rest=Math.max(0,tsec-split);
-  const rowsT=TABS.filter(([t])=>t!=="progress"||TT[t]).map(([t,lab])=>[lab,TT[t]||0,t==="quiz"||t==="reverse"?`${TQ[t]||0} questions`:t==="learn"?`${tflips} cards flipped to see the meaning · ${tcards} rated (I know it / Still learning)`:""]).concat(rest>=60?[["Not split by tab",rest,"older pages, or before tab tracking started"]]:[]);
+  const rowsT=TABS.filter(([t])=>t!=="progress"||TT[t]).map(([t,lab])=>[lab,TT[t]||0,t==="quiz"||t==="reverse"?`${TQ[t]||0} questions`:t==="learn"?`${tflips} cards flipped to see the meaning · ${tcards} rated (I know it / Still learning)`:""]).concat(rest>=60?[["Not split by tab",rest,"before tab tracking started today"]]:[]);
   const maxT=Math.max(1,...rowsT.map(r=>r[1]));
   $("#tabs").innerHTML=(tsec||tflips||tcards||Object.keys(TQ).length)?rowsT.map(([l,v,d])=>`<div class="tb"><span class="tl">${l}</span><span class="tbar"><i style="width:${Math.round(v/maxT*100)}%"></i></span><span class="tv">${fmt(v)}</span><span class="td note">${d}</span></div>`).join(""):`<p class="note">No practice in this period.</p>`;
   // log
