@@ -59,6 +59,10 @@ tr.day td{background:var(--paper);font-weight:700}
 @media (max-width:520px){.tb{grid-template-columns:100px minmax(0,1fr) 60px}}
 tr.les td{font-size:14px;color:var(--muted);padding-top:4px;padding-bottom:4px}
 tr.les td:first-child{padding-left:34px}
+tr.sess td{font-size:14px;color:var(--muted);padding-top:2px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+tr.sess .sp{display:inline-block;margin-right:18px;white-space:nowrap}
+tr.sess .tag{font-size:11px;padding:1px 6px;margin-left:4px}
+tr.les td div{font-size:12px}
 </style>
 </head>
 <body>
@@ -79,7 +83,7 @@ tr.les td:first-child{padding-left:34px}
   <section class="kpis" id="kpis"></section>
   <section class="panel"><h2>Minutes practised per day</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></section>
   <section class="panel"><h2>Time by tab <span class="note" style="font-weight:400">(English)</span></h2><div id="tabs"></div></section>
-  <section class="panel"><h2>Daily activity</h2><div class="tbl" id="log"></div></section>
+  <section class="panel"><h2>Daily activity</h2><p class="note" style="margin-top:-4px">Time = active practice: page on screen and touched recently. From 5 Nov each day also lists its practice sessions (start–end) and on-screen time.</p><div class="tbl" id="log"></div></section>
   <section class="panel"><h2>Chapter progress</h2><div id="chapters"></div></section>
 </div>
 <script>
@@ -101,9 +105,15 @@ try{const s=JSON.parse(localStorage.getItem("dash-filters")||"{}");if(s.range)$(
 async function load(){
   $("#note").className="note";$("#note").textContent="Loading…";
   try{
-    const r=await fetch(`${SUPA.url}/rest/v1/vocab_progress?select=learner,chapter,kind,key,data,updated_at&limit=10000`,{headers:{apikey:SUPA.key}});
-    if(!r.ok)throw new Error("error "+r.status);
-    ROWS=await r.json();
+    /* Supabase returns at most 1000 rows per request, so read in pages until everything is in */
+    ROWS=[];for(let off=0;;off+=1000){
+      const r=await fetch(`${SUPA.url}/rest/v1/vocab_progress?select=learner,chapter,kind,key,data,updated_at&order=learner,chapter,kind,key&offset=${off}&limit=1000`,{headers:{apikey:SUPA.key}});
+      if(!r.ok)throw new Error("error "+r.status);
+      const page=await r.json();ROWS.push(...page);if(page.length<1000)break}
+    /* the same name typed with different capitals (Ethan / ethan) is one learner */
+    const spell={};ROWS.forEach(x=>{const k=x.learner.trim().toLowerCase();(spell[k]||(spell[k]={}))[x.learner]=((spell[k]||{})[x.learner]||0)+1});
+    const canon={};for(const k in spell)canon[k]=Object.entries(spell[k]).sort((a,b)=>b[1]-a[1])[0][0];
+    ROWS.forEach(x=>{x.learner=canon[x.learner.trim().toLowerCase()]});
     const learners=[...new Set(ROWS.map(x=>x.learner))].sort();
     const sel=$("#who"),prev=sel.value||(()=>{try{return JSON.parse(localStorage.getItem("dash-filters")||"{}").who}catch(e){return ""}})()||localStorage.getItem("vocab-learner")||"";
     sel.innerHTML=learners.map(n=>`<option>${esc(n)}</option>`).join("")||`<option value="">No learners yet</option>`;
@@ -121,8 +131,15 @@ const CN_NUM="一二三四五六七八九十";
 const lessonName=(ch,n)=>`第${CN_NUM[n-1]||n}课`+(LESSON_NAMES[ch]&&LESSON_NAMES[ch][n-1]?`《${LESSON_NAMES[ch][n-1]}》`:"");
 const lessonRows=(ch,c)=>{const ks=Object.keys(c.ls||{}).map(Number).filter(n=>{const l=c.ls[n];return l.s||l.q||l.cards}).sort((a,b)=>a-b);if(!ks.length)return "";
   const rest=c.seconds-ks.reduce((a,n)=>a+c.ls[n].s,0);
-  return ks.map(n=>{const l=c.ls[n];return `<tr class="les"><td>${esc(lessonName(ch,n))}</td><td class="n">${fmt(l.s)}</td><td class="n">${l.q}</td><td class="n ${l.q?(l.c/l.q>=.8?"good":l.c/l.q<.5?"badc":""):""}">${pct(l.c,l.q)}</td><td class="n">${l.cards}</td><td></td></tr>`}).join("")
+  return ks.map(n=>{const l=c.ls[n];return `<tr class="les"><td>${esc(lessonName(ch,n))}</td><td class="n">${fmt(l.s)}${l.v?`<div>${fmt(l.v)} on screen</div>`:""}</td><td class="n">${l.q}</td><td class="n ${l.q?(l.c/l.q>=.8?"good":l.c/l.q<.5?"badc":""):""}">${pct(l.c,l.q)}</td><td class="n">${l.cards}</td><td></td></tr>`}).join("")
    +(rest>=60?`<tr class="les"><td>Not split by lesson</td><td class="n">${fmt(rest)}</td><td></td><td></td><td></td><td></td></tr>`:"")};
+const hm=t=>new Date(t).toLocaleTimeString("en-SG",{hour:"2-digit",minute:"2-digit",hour12:false});
+/* practice sessions for one day: sessions from all pages and devices, joined when less than 5 min apart */
+const sessRow=k=>{const all=[];Object.values(byDayRef[k]||{}).forEach(c=>(c.sess||[]).forEach(z=>all.push(z)));if(!all.length)return "";
+  all.sort((a,b)=>a.a-b.a);const out=[];
+  for(const z of all){const p=out[out.length-1];if(p&&z.a-p.b<300000){p.b=Math.max(p.b,z.b);p.act+=z.act;p.vis+=z.vis;p.subj.add(z.subj)}else out.push({a:z.a,b:z.b,act:z.act,vis:z.vis,subj:new Set([z.subj])})}
+  return `<tr class="sess"><td colspan="6">${out.map(o=>`<span class="sp"><b>${hm(o.a)}–${hm(o.b)}</b> · ${fmt(o.act)} active of ${fmt(o.vis)} on screen${[...o.subj].map(x=>` <span class="tag ${x}">${x==="en"?"EN":"中文"}</span>`).join("")}</span>`).join("")}</td></tr>`};
+let byDayRef={};
 function render(){
   const who=$("#who").value,days=+$("#range").value,subj=$("#subj").value;
   try{localStorage.setItem("dash-filters",JSON.stringify({who,range:days,subj}))}catch(e){}
@@ -132,9 +149,9 @@ function render(){
   const today=new Date();const dates=[];for(let i=days-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);dates.push(ymd(d))}
   const from=dates[0];
   // per day per chapter (devices summed)
-  const byDay={};usage.forEach(x=>{const d=x.data||{};if(!d.date||d.date<from)return;
-    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set(),tabs:{},tq:{},flips:0,ls:{}});
-    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w));addTo(c.tabs,d.tabs);addTo(c.tq,d.tq);c.flips+=d.flips||0;for(const n in (d.ls||{})){const a=d.ls[n]||{},l=c.ls[n]||(c.ls[n]={s:0,q:0,c:0,cards:0});l.s+=a.s||0;l.q+=a.q||0;l.c+=a.c||0;l.cards+=a.cards||0}});
+  const byDay={};byDayRef=byDay;usage.forEach(x=>{const d=x.data||{};if(!d.date||d.date<from)return;
+    const day=byDay[d.date]||(byDay[d.date]={});const c=day[x.chapter]||(day[x.chapter]={seconds:0,questions:0,correct:0,cards:0,quizzes:0,missed:new Set(),tabs:{},tq:{},flips:0,ls:{},vis:0,sess:[]});
+    c.seconds+=d.seconds||0;c.questions+=d.questions||0;c.correct+=d.correct||0;c.cards+=d.cards||0;c.quizzes+=d.quizzes||0;(d.missed||[]).forEach(w=>c.missed.add(w));addTo(c.tabs,d.tabs);addTo(c.tq,d.tq);c.flips+=d.flips||0;for(const n in (d.ls||{})){const a=d.ls[n]||{},l=c.ls[n]||(c.ls[n]={s:0,q:0,c:0,cards:0});l.s+=a.s||0;l.q+=a.q||0;l.c+=a.c||0;l.cards+=a.cards||0;l.v=(l.v||0)+(a.v||0)}c.vis+=d.vis||0;(d.sess||[]).forEach(z=>z&&z.a&&c.sess.push({a:z.a,b:z.b,act:z.act||0,vis:z.vis||0,subj:subjOf(x.chapter)}))});
   const dayTot=k=>Object.entries(byDay[k]||{}).reduce((a,[ch,c])=>{a.seconds+=c.seconds;a.q+=c.questions;a.c+=c.correct;a.cards+=c.cards;a[subjOf(+ch)]+=c.seconds;return a},{seconds:0,q:0,c:0,cards:0,en:0,zh:0});
   // KPIs
   const tk=ymd(today),T=dayTot(tk);
@@ -171,13 +188,13 @@ function render(){
   // log
   const shown=dates.slice().reverse().filter(k=>byDay[k]);
   $("#log").innerHTML=shown.length?`<table><thead><tr><th>Day / chapter</th><th class="n">Time</th><th class="n">Questions</th><th class="n">Right</th><th class="n">Cards</th><th>Words missed</th></tr></thead><tbody>${
-    shown.map(k=>{const t=dayTot(k);return `<tr class="day"><td>${nice(k)}</td><td class="n">${fmt(t.seconds)}</td><td class="n">${t.q}</td><td class="n">${pct(t.c,t.q)}</td><td class="n">${t.cards}</td><td></td></tr>`+
-      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}${tabLine(c)}</td><td class="n">${fmt(c.seconds)}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`+lessonRows(+ch,c)).join("")}).join("")
+    shown.map(k=>{const t=dayTot(k);return `<tr class="day"><td>${nice(k)}</td><td class="n">${fmt(t.seconds)}</td><td class="n">${t.q}</td><td class="n">${pct(t.c,t.q)}</td><td class="n">${t.cards}</td><td></td></tr>`+sessRow(k)+
+      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}${subjOf(+ch)==="en"?tabLine(c):""}</td><td class="n">${fmt(c.seconds)}${c.vis?`<div class="tabln">${fmt(c.vis)} on screen</div>`:""}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`+lessonRows(+ch,c)).join("")}).join("")
   }</tbody></table>`:`<p class="note">No practice in this period.</p>`;
   // chapter progress (from word-progress records)
   const allTime={};usage.forEach(x=>{const d=x.data||{};const a=allTime[x.chapter]||(allTime[x.chapter]={seconds:0,q:0});a.seconds+=d.seconds||0;a.q+=d.questions||0});
   const chs=[...new Set([...learnerRows.map(x=>x.chapter),...Object.keys(allTime).map(Number)])].sort((a,b)=>a-b);
-  const pcRow=ch=>{const lr=learnerRows.find(x=>x.chapter===ch);const items=(lr&&lr.data&&lr.data.items)||[];const tricky=(lr&&lr.data&&lr.data.tricky)||[];
+  const pcRow=ch=>{const lr=learnerRows.filter(x=>x.chapter===ch).sort((a,b)=>a.updated_at<b.updated_at?1:-1)[0];const items=(lr&&lr.data&&lr.data.items)||[];const tricky=(lr&&lr.data&&lr.data.tricky)||[];
     const total=NAMES[ch]?NAMES[ch][1]:0;const seen=items.length;const learned=items.filter(it=>(it.o||0)>0&&!tricky.includes(it.k)).length;const a=allTime[ch]||{seconds:0,q:0};
     const p=total?Math.round(seen/total*100):0;
     return `<div class="pc"><div><span class="tag ${subjOf(ch)}">${subjOf(ch)==="en"?"EN":"中文"}</span><b>${esc(chName(ch))}</b><br><span class="note">${seen}${total?" of "+total:""} seen · ${learned} learned · ${tricky.length} tricky · ${fmt(a.seconds)} all time · ${a.q} questions</span></div><div class="note" style="text-align:right">${total?p+"% seen":""}</div><div class="bar"><i style="width:${p}%;background:var(--${subjOf(ch)})"></i></div></div>`};
