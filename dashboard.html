@@ -69,29 +69,27 @@ tr.les td div{font-size:12px}
 <div class="wrap">
   <header>
     <h1>Practice Dashboard</h1>
-    <p class="sub">Daily activity from the English and Chinese practice sites</p>
+    <p class="sub">Daily activity on the English practice site · <a href="https://zhrvps.github.io/HMTP6A/dashboard.html">华文练习看板 →</a></p>
   </header>
   <div class="filters">
     <label for="who">Learner</label><select id="who"></select>
     <label for="range">Period</label>
     <select id="range"><option value="7">Last 7 days</option><option value="14" selected>Last 14 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select>
-    <label for="subj">Subject</label>
-    <select id="subj"><option value="all">English + Chinese</option><option value="en">English</option><option value="zh">Chinese</option></select>
     <button class="btn" id="reload">Refresh</button>
   </div>
   <p class="note" id="note">Loading…</p>
   <section class="kpis" id="kpis"></section>
   <section class="panel"><h2>Minutes practised per day</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></section>
-  <section class="panel"><h2>Time by tab <span class="note" style="font-weight:400">(English)</span></h2><div id="tabs"></div></section>
+  <section class="panel"><h2>Time by tab</h2><div id="tabs"></div></section>
   <section class="panel"><h2>Daily activity</h2><p class="note" style="margin-top:-4px">Time = active practice: page on screen and touched recently. From 5 Nov each day also lists its practice sessions (start–end) and on-screen time.</p><div class="tbl" id="log"></div></section>
   <section class="panel"><h2>Chapter progress</h2><div id="chapters"></div></section>
 </div>
 <script>
 const SUPA={url:"https://yezqrwjtwwhnuawmjeod.supabase.co",key:"sb_publishable_HTl05cHUNd1LJ_-ai8GaAw_oXjk-NCT"};
-/* Chapter names and sizes. English chapters are 54–61; Chinese chapters are numbered from 600 (e.g. 601). Add Chinese lesson names here when known, e.g. 601:["第一课 到户外去",40]. */
-const NAMES={54:["Synonyms",322],55:["Antonyms",385],56:["Homophones",312],57:["One-word Substitution",100],58:["Phrasal Verbs",190],59:["Proverbs",19],60:["Idioms",163],61:["Similes",119],601:["欢乐伙伴 6A",0],/*WW-START*/4001:["Wordly Wise 4 · Lesson 1",35],4002:["Wordly Wise 4 · Lesson 2",30],4003:["Wordly Wise 4 · Lesson 3",31],4004:["Wordly Wise 4 · Lesson 4",37],4005:["Wordly Wise 4 · Lesson 5",29],4006:["Wordly Wise 4 · Lesson 6",26],4007:["Wordly Wise 4 · Lesson 7",32],4008:["Wordly Wise 4 · Lesson 8",30],4009:["Wordly Wise 4 · Lesson 9",29],4010:["Wordly Wise 4 · Lesson 10",28],4011:["Wordly Wise 4 · Lesson 11",33],4012:["Wordly Wise 4 · Lesson 12",31],4013:["Wordly Wise 4 · Lesson 13",34],4014:["Wordly Wise 4 · Lesson 14",28],4015:["Wordly Wise 4 · Lesson 15",30],4016:["Wordly Wise 4 · Lesson 16",28],4017:["Wordly Wise 4 · Lesson 17",32],4018:["Wordly Wise 4 · Lesson 18",26],4019:["Wordly Wise 4 · Lesson 19",28],4020:["Wordly Wise 4 · Lesson 20",33],5001:["Wordly Wise 5 · Lesson 1",27],5002:["Wordly Wise 5 · Lesson 2",34],5003:["Wordly Wise 5 · Lesson 3",30],5004:["Wordly Wise 5 · Lesson 4",29],5005:["Wordly Wise 5 · Lesson 5",29],5006:["Wordly Wise 5 · Lesson 6",28],5007:["Wordly Wise 5 · Lesson 7",36],5008:["Wordly Wise 5 · Lesson 8",29],5009:["Wordly Wise 5 · Lesson 9",29],5010:["Wordly Wise 5 · Lesson 10",31],5011:["Wordly Wise 5 · Lesson 11",33],5012:["Wordly Wise 5 · Lesson 12",28],5013:["Wordly Wise 5 · Lesson 13",25],5014:["Wordly Wise 5 · Lesson 14",31],5015:["Wordly Wise 5 · Lesson 15",31],5016:["Wordly Wise 5 · Lesson 16",31],5017:["Wordly Wise 5 · Lesson 17",25],5018:["Wordly Wise 5 · Lesson 18",31],5019:["Wordly Wise 5 · Lesson 19",27],5020:["Wordly Wise 5 · Lesson 20",31],6001:["Wordly Wise 6 · Lesson 1",33],6002:["Wordly Wise 6 · Lesson 2",33],6003:["Wordly Wise 6 · Lesson 3",24],6004:["Wordly Wise 6 · Lesson 4",25],6005:["Wordly Wise 6 · Lesson 5",25],6006:["Wordly Wise 6 · Lesson 6",34],6007:["Wordly Wise 6 · Lesson 7",32],6008:["Wordly Wise 6 · Lesson 8",28],6009:["Wordly Wise 6 · Lesson 9",31],6010:["Wordly Wise 6 · Lesson 10",35],6011:["Wordly Wise 6 · Lesson 11",31],6012:["Wordly Wise 6 · Lesson 12",25],6013:["Wordly Wise 6 · Lesson 13",33],6014:["Wordly Wise 6 · Lesson 14",31],6015:["Wordly Wise 6 · Lesson 15",32],6016:["Wordly Wise 6 · Lesson 16",28],6017:["Wordly Wise 6 · Lesson 17",29],6018:["Wordly Wise 6 · Lesson 18",27],6019:["Wordly Wise 6 · Lesson 19",34],6020:["Wordly Wise 6 · Lesson 20",27],7001:["Wordly Wise 7 · Lesson 1",29],7002:["Wordly Wise 7 · Lesson 2",28],7003:["Wordly Wise 7 · Lesson 3",29],7004:["Wordly Wise 7 · Lesson 4",29],7005:["Wordly Wise 7 · Lesson 5",29],7006:["Wordly Wise 7 · Lesson 6",29],7007:["Wordly Wise 7 · Lesson 7",27],7008:["Wordly Wise 7 · Lesson 8",27],7009:["Wordly Wise 7 · Lesson 9",32],7010:["Wordly Wise 7 · Lesson 10",25],7011:["Wordly Wise 7 · Lesson 11",33],7012:["Wordly Wise 7 · Lesson 12",30],7013:["Wordly Wise 7 · Lesson 13",23],7014:["Wordly Wise 7 · Lesson 14",24],7015:["Wordly Wise 7 · Lesson 15",30],7016:["Wordly Wise 7 · Lesson 16",30],7017:["Wordly Wise 7 · Lesson 17",30],7018:["Wordly Wise 7 · Lesson 18",30],7019:["Wordly Wise 7 · Lesson 19",31],7020:["Wordly Wise 7 · Lesson 20",29]/*WW-END*/};
+/* Chapter names and sizes. Vocabulary book chapters are 54–61; Wordly Wise lessons are book*1000+lesson. (Chinese 600–699 is shown on the HMTP6A dashboard.) */
+const NAMES={54:["Synonyms",322],55:["Antonyms",385],56:["Homophones",312],57:["One-word Substitution",100],58:["Phrasal Verbs",190],59:["Proverbs",19],60:["Idioms",163],61:["Similes",119],/*WW-START*/4001:["Wordly Wise 4 · Lesson 1",35],4002:["Wordly Wise 4 · Lesson 2",30],4003:["Wordly Wise 4 · Lesson 3",31],4004:["Wordly Wise 4 · Lesson 4",37],4005:["Wordly Wise 4 · Lesson 5",29],4006:["Wordly Wise 4 · Lesson 6",26],4007:["Wordly Wise 4 · Lesson 7",32],4008:["Wordly Wise 4 · Lesson 8",30],4009:["Wordly Wise 4 · Lesson 9",29],4010:["Wordly Wise 4 · Lesson 10",28],4011:["Wordly Wise 4 · Lesson 11",33],4012:["Wordly Wise 4 · Lesson 12",31],4013:["Wordly Wise 4 · Lesson 13",34],4014:["Wordly Wise 4 · Lesson 14",28],4015:["Wordly Wise 4 · Lesson 15",30],4016:["Wordly Wise 4 · Lesson 16",28],4017:["Wordly Wise 4 · Lesson 17",32],4018:["Wordly Wise 4 · Lesson 18",26],4019:["Wordly Wise 4 · Lesson 19",28],4020:["Wordly Wise 4 · Lesson 20",33],5001:["Wordly Wise 5 · Lesson 1",27],5002:["Wordly Wise 5 · Lesson 2",34],5003:["Wordly Wise 5 · Lesson 3",30],5004:["Wordly Wise 5 · Lesson 4",29],5005:["Wordly Wise 5 · Lesson 5",29],5006:["Wordly Wise 5 · Lesson 6",28],5007:["Wordly Wise 5 · Lesson 7",36],5008:["Wordly Wise 5 · Lesson 8",29],5009:["Wordly Wise 5 · Lesson 9",29],5010:["Wordly Wise 5 · Lesson 10",31],5011:["Wordly Wise 5 · Lesson 11",33],5012:["Wordly Wise 5 · Lesson 12",28],5013:["Wordly Wise 5 · Lesson 13",25],5014:["Wordly Wise 5 · Lesson 14",31],5015:["Wordly Wise 5 · Lesson 15",31],5016:["Wordly Wise 5 · Lesson 16",31],5017:["Wordly Wise 5 · Lesson 17",25],5018:["Wordly Wise 5 · Lesson 18",31],5019:["Wordly Wise 5 · Lesson 19",27],5020:["Wordly Wise 5 · Lesson 20",31],6001:["Wordly Wise 6 · Lesson 1",33],6002:["Wordly Wise 6 · Lesson 2",33],6003:["Wordly Wise 6 · Lesson 3",24],6004:["Wordly Wise 6 · Lesson 4",25],6005:["Wordly Wise 6 · Lesson 5",25],6006:["Wordly Wise 6 · Lesson 6",34],6007:["Wordly Wise 6 · Lesson 7",32],6008:["Wordly Wise 6 · Lesson 8",28],6009:["Wordly Wise 6 · Lesson 9",31],6010:["Wordly Wise 6 · Lesson 10",35],6011:["Wordly Wise 6 · Lesson 11",31],6012:["Wordly Wise 6 · Lesson 12",25],6013:["Wordly Wise 6 · Lesson 13",33],6014:["Wordly Wise 6 · Lesson 14",31],6015:["Wordly Wise 6 · Lesson 15",32],6016:["Wordly Wise 6 · Lesson 16",28],6017:["Wordly Wise 6 · Lesson 17",29],6018:["Wordly Wise 6 · Lesson 18",27],6019:["Wordly Wise 6 · Lesson 19",34],6020:["Wordly Wise 6 · Lesson 20",27],7001:["Wordly Wise 7 · Lesson 1",29],7002:["Wordly Wise 7 · Lesson 2",28],7003:["Wordly Wise 7 · Lesson 3",29],7004:["Wordly Wise 7 · Lesson 4",29],7005:["Wordly Wise 7 · Lesson 5",29],7006:["Wordly Wise 7 · Lesson 6",29],7007:["Wordly Wise 7 · Lesson 7",27],7008:["Wordly Wise 7 · Lesson 8",27],7009:["Wordly Wise 7 · Lesson 9",32],7010:["Wordly Wise 7 · Lesson 10",25],7011:["Wordly Wise 7 · Lesson 11",33],7012:["Wordly Wise 7 · Lesson 12",30],7013:["Wordly Wise 7 · Lesson 13",23],7014:["Wordly Wise 7 · Lesson 14",24],7015:["Wordly Wise 7 · Lesson 15",30],7016:["Wordly Wise 7 · Lesson 16",30],7017:["Wordly Wise 7 · Lesson 17",30],7018:["Wordly Wise 7 · Lesson 18",30],7019:["Wordly Wise 7 · Lesson 19",31],7020:["Wordly Wise 7 · Lesson 20",29]/*WW-END*/};
 const subjOf=c=>(c>=600&&c<700)?"zh":"en";
-const chName=c=>NAMES[c]?(c>=600?NAMES[c][0]:`Ch ${c} ${NAMES[c][0]}`):(c>=600&&c<700?`中文 ${c}`:c>=1000?`Wordly Wise ${Math.floor(c/1000)} · Lesson ${c%1000}`:`Chapter ${c}`);
+const chName=c=>NAMES[c]?(c>=1000?NAMES[c][0]:`Ch ${c} ${NAMES[c][0]}`):(c>=1000?`Wordly Wise ${Math.floor(c/1000)} · Lesson ${c%1000}`:`Chapter ${c}`);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const mins=s=>Math.round((s||0)/60);
@@ -100,16 +98,17 @@ const pct=(c,q)=>q?Math.round(c/q*100)+"%":"–";
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const nice=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short"})};
 let ROWS=[];let DOPEN={};try{DOPEN=JSON.parse(localStorage.getItem("dash-open")||"{}")}catch(e){}
-try{const s=JSON.parse(localStorage.getItem("dash-filters")||"{}");if(s.range)$("#range").value=s.range;if(s.subj)$("#subj").value=s.subj}catch(e){}
+try{const s=JSON.parse(localStorage.getItem("dash-filters")||"{}");if(s.range)$("#range").value=s.range}catch(e){}
 
 async function load(){
   $("#note").className="note";$("#note").textContent="Loading…";
   try{
     /* Supabase returns at most 1000 rows per request, so read in pages until everything is in */
     ROWS=[];for(let off=0;;off+=1000){
-      const r=await fetch(`${SUPA.url}/rest/v1/vocab_progress?select=learner,chapter,kind,key,data,updated_at&order=learner,chapter,kind,key&offset=${off}&limit=1000`,{headers:{apikey:SUPA.key}});
+      const r=await fetch(`${SUPA.url}/rest/v1/vocab_progress?select=learner,chapter,kind,key,data,updated_at&or=(chapter.lt.600,chapter.gt.699)&order=learner,chapter,kind,key&offset=${off}&limit=1000`,{headers:{apikey:SUPA.key}});
       if(!r.ok)throw new Error("error "+r.status);
       const page=await r.json();ROWS.push(...page);if(page.length<1000)break}
+    ROWS=ROWS.filter(x=>!(x.chapter>=600&&x.chapter<700)); // Chinese has its own dashboard (HMTP6A)
     /* the same name typed with different capitals (Ethan / ethan) is one learner */
     const spell={};ROWS.forEach(x=>{const k=x.learner.trim().toLowerCase();(spell[k]||(spell[k]={}))[x.learner]=((spell[k]||{})[x.learner]||0)+1});
     const canon={};for(const k in spell)canon[k]=Object.entries(spell[k]).sort((a,b)=>b[1]-a[1])[0][0];
@@ -126,23 +125,16 @@ async function load(){
 const TABS=[["quiz","Quiz"],["reverse","Find the word"],["learn","Flashcards"],["list","Word list"],["progress","Progress page"]];
 const addTo=(o,src)=>{for(const k in (src||{}))o[k]=(o[k]||0)+(+src[k]||0);return o};
 const tabLine=c=>{const p=TABS.filter(([t])=>(c.tabs[t]||0)>=5).map(([t,l])=>`${l} ${fmt(c.tabs[t])}`+(t==="learn"&&c.flips?` (${c.flips} flipped)`:""));return p.length?`<div class="tabln">${p.join(" · ")}</div>`:""};
-const LESSON_NAMES={601:["加油！加油！","祖孙情","美食小侦探","宝贵的礼物","小故事，大道理","精彩三国","世界走透透"]};
-const CN_NUM="一二三四五六七八九十";
-const lessonName=(ch,n)=>`第${CN_NUM[n-1]||n}课`+(LESSON_NAMES[ch]&&LESSON_NAMES[ch][n-1]?`《${LESSON_NAMES[ch][n-1]}》`:"");
-const lessonRows=(ch,c)=>{const ks=Object.keys(c.ls||{}).map(Number).filter(n=>{const l=c.ls[n];return l.s||l.q||l.cards}).sort((a,b)=>a-b);if(!ks.length)return "";
-  const rest=c.seconds-ks.reduce((a,n)=>a+c.ls[n].s,0);
-  return ks.map(n=>{const l=c.ls[n];return `<tr class="les"><td>${esc(lessonName(ch,n))}</td><td class="n">${fmt(l.s)}${l.v?`<div>${fmt(l.v)} on screen</div>`:""}</td><td class="n">${l.q}</td><td class="n ${l.q?(l.c/l.q>=.8?"good":l.c/l.q<.5?"badc":""):""}">${pct(l.c,l.q)}</td><td class="n">${l.cards}</td><td></td></tr>`}).join("")
-   +(rest>=60?`<tr class="les"><td>Not split by lesson</td><td class="n">${fmt(rest)}</td><td></td><td></td><td></td><td></td></tr>`:"")};
 const hm=t=>new Date(t).toLocaleTimeString("en-SG",{hour:"2-digit",minute:"2-digit",hour12:false});
 /* practice sessions for one day: sessions from all pages and devices, joined when less than 5 min apart */
 const sessRow=k=>{const all=[];Object.values(byDayRef[k]||{}).forEach(c=>(c.sess||[]).forEach(z=>all.push(z)));if(!all.length)return "";
   all.sort((a,b)=>a.a-b.a);const out=[];
   for(const z of all){const p=out[out.length-1];if(p&&z.a-p.b<300000){p.b=Math.max(p.b,z.b);p.act+=z.act;p.vis+=z.vis;p.subj.add(z.subj)}else out.push({a:z.a,b:z.b,act:z.act,vis:z.vis,subj:new Set([z.subj])})}
-  return `<tr class="sess"><td colspan="6">${out.map(o=>`<span class="sp"><b>${hm(o.a)}–${hm(o.b)}</b> · ${fmt(o.act)} active of ${fmt(o.vis)} on screen${[...o.subj].map(x=>` <span class="tag ${x}">${x==="en"?"EN":"中文"}</span>`).join("")}</span>`).join("")}</td></tr>`};
+  return `<tr class="sess"><td colspan="6">${out.map(o=>`<span class="sp"><b>${hm(o.a)}–${hm(o.b)}</b> · ${fmt(o.act)} active of ${fmt(o.vis)} on screen</span>`).join("")}</td></tr>`};
 let byDayRef={};
 function render(){
-  const who=$("#who").value,days=+$("#range").value,subj=$("#subj").value;
-  try{localStorage.setItem("dash-filters",JSON.stringify({who,range:days,subj}))}catch(e){}
+  const who=$("#who").value,days=+$("#range").value,subj="en";
+  try{localStorage.setItem("dash-filters",JSON.stringify({who,range:days}))}catch(e){}
   const keep=x=>x.learner===who&&(subj==="all"||subjOf(x.chapter)===subj);
   const usage=ROWS.filter(x=>x.kind==="usage"&&keep(x));
   const learnerRows=ROWS.filter(x=>x.kind==="learner"&&keep(x));
@@ -166,7 +158,7 @@ function render(){
   ].map(([l,v,d])=>`<div class="kpi"><span class="lab">${l}</span><span class="val">${v}</span><span class="det">${d}</span></div>`).join("");
   // chart
   const series=subj==="all"?["en","zh"]:[subj];
-  $("#legend").innerHTML=series.map(s=>`<span><i style="background:var(--${s})"></i>${s==="en"?"English":"Chinese"}</span>`).join("");
+  $("#legend").innerHTML="";
   const W=Math.max(($("#chart").clientWidth||600)-2,days*18),H=220,pad={l:36,r:8,t:10,b:28},cw=W-pad.l-pad.r,chh=H-pad.t-pad.b;
   const vals=dates.map(k=>{const t=dayTot(k);return {k,en:mins(t.en),zh:mins(t.zh)}});
   const maxV=Math.max(10,...vals.map(v=>series.reduce((a,s)=>a+v[s],0)));
@@ -176,20 +168,20 @@ function render(){
   for(let v=0;v<=top;v+=step)svg+=`<line x1="${pad.l}" x2="${W-pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${pad.l-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
   const every=Math.max(1,Math.ceil(days/Math.floor(cw/42)));
   vals.forEach((v,i)=>{const cx=pad.l+cw*(i+.5)/days;let base=0;
-    series.forEach(s=>{if(v[s]>0){svg+=`<rect x="${cx-bw/2}" y="${y(base+v[s])}" width="${bw}" height="${y(base)-y(base+v[s])}" fill="var(--${s})" rx="2"><title>${nice(v.k)}: ${v[s]} min ${s==="en"?"English":"Chinese"}</title></rect>`;base+=v[s]}});
+    series.forEach(s=>{if(v[s]>0){svg+=`<rect x="${cx-bw/2}" y="${y(base+v[s])}" width="${bw}" height="${y(base)-y(base+v[s])}" fill="var(--${s})" rx="2"><title>${nice(v.k)}: ${v[s]} min</title></rect>`;base+=v[s]}});
     if(i%every===0||i===days-1){const [,m,d]=v.k.split("-");svg+=`<text x="${cx}" y="${H-8}" text-anchor="middle">${+d}/${+m}</text>`}});
   svg+=`</svg>`;$("#chart").innerHTML=svg;
   // time by tab (selected period)
   const TT={},TQ={};let tsec=0,tcards=0,tflips=0;dates.forEach(k=>Object.entries(byDay[k]||{}).filter(([ch])=>subjOf(+ch)==="en").map(([,c])=>c).forEach(c=>{addTo(TT,c.tabs);addTo(TQ,c.tq);tsec+=c.seconds;tcards+=c.cards;tflips+=c.flips}));
   const split=TABS.reduce((a,[t])=>a+(TT[t]||0),0),rest=Math.max(0,tsec-split);
-  const rowsT=TABS.filter(([t])=>t!=="progress"||TT[t]).map(([t,lab])=>[lab,TT[t]||0,t==="quiz"||t==="reverse"?`${TQ[t]||0} questions`:t==="learn"?`${tflips} cards flipped to see the meaning · ${tcards} rated (I know it / Still learning)`:""]).concat(rest>=60?[["Not split by tab",rest,"before tab tracking started today"]]:[]);
+  const rowsT=TABS.filter(([t])=>t!=="progress"||TT[t]).map(([t,lab])=>[lab,TT[t]||0,t==="quiz"||t==="reverse"?`${TQ[t]||0} questions`:t==="learn"?`${tflips} cards flipped to see the meaning · ${tcards} rated (I know it / Still learning)`:""]).concat(rest>=60?[["Not split by tab",rest,"older practice, recorded before the split by tab (3 Nov)"]]:[]);
   const maxT=Math.max(1,...rowsT.map(r=>r[1]));
   $("#tabs").innerHTML=(tsec||tflips||tcards||Object.keys(TQ).length)?rowsT.map(([l,v,d])=>`<div class="tb"><span class="tl">${l}</span><span class="tbar"><i style="width:${Math.round(v/maxT*100)}%"></i></span><span class="tv">${fmt(v)}</span><span class="td note">${d}</span></div>`).join(""):`<p class="note">No practice in this period.</p>`;
   // log
   const shown=dates.slice().reverse().filter(k=>byDay[k]);
   $("#log").innerHTML=shown.length?`<table><thead><tr><th>Day / chapter</th><th class="n">Time</th><th class="n">Questions</th><th class="n">Right</th><th class="n">Cards</th><th>Words missed</th></tr></thead><tbody>${
     shown.map(k=>{const t=dayTot(k);return `<tr class="day"><td>${nice(k)}</td><td class="n">${fmt(t.seconds)}</td><td class="n">${t.q}</td><td class="n">${pct(t.c,t.q)}</td><td class="n">${t.cards}</td><td></td></tr>`+sessRow(k)+
-      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td><span class="tag ${subjOf(+ch)}">${subjOf(+ch)==="en"?"EN":"中文"}</span>${esc(chName(+ch))}${subjOf(+ch)==="en"?tabLine(c):""}</td><td class="n">${fmt(c.seconds)}${c.vis?`<div class="tabln">${fmt(c.vis)} on screen</div>`:""}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`+lessonRows(+ch,c)).join("")}).join("")
+      Object.entries(byDay[k]).sort((a,b)=>a[0]-b[0]).map(([ch,c])=>`<tr><td>${esc(chName(+ch))}${tabLine(c)}</td><td class="n">${fmt(c.seconds)}${c.vis&&c.vis>=c.seconds?`<div class="tabln">${fmt(c.vis)} on screen</div>`:""}</td><td class="n">${c.questions}</td><td class="n ${c.questions?(c.correct/c.questions>=.8?"good":c.correct/c.questions<.5?"badc":""):""}">${pct(c.correct,c.questions)}</td><td class="n">${c.cards}</td><td class="miss">${esc([...c.missed].join(", "))||"–"}</td></tr>`).join("")}).join("")
   }</tbody></table>`:`<p class="note">No practice in this period.</p>`;
   // chapter progress (from word-progress records)
   const allTime={};usage.forEach(x=>{const d=x.data||{};const a=allTime[x.chapter]||(allTime[x.chapter]={seconds:0,q:0});a.seconds+=d.seconds||0;a.q+=d.questions||0});
@@ -197,15 +189,15 @@ function render(){
   const pcRow=ch=>{const lr=learnerRows.filter(x=>x.chapter===ch).sort((a,b)=>a.updated_at<b.updated_at?1:-1)[0];const items=(lr&&lr.data&&lr.data.items)||[];const tricky=(lr&&lr.data&&lr.data.tricky)||[];
     const total=NAMES[ch]?NAMES[ch][1]:0;const seen=items.length;const learned=items.filter(it=>(it.o||0)>0&&!tricky.includes(it.k)).length;const a=allTime[ch]||{seconds:0,q:0};
     const p=total?Math.round(seen/total*100):0;
-    return `<div class="pc"><div><span class="tag ${subjOf(ch)}">${subjOf(ch)==="en"?"EN":"中文"}</span><b>${esc(chName(ch))}</b><br><span class="note">${seen}${total?" of "+total:""} seen · ${learned} learned · ${tricky.length} tricky · ${fmt(a.seconds)} all time · ${a.q} questions</span></div><div class="note" style="text-align:right">${total?p+"% seen":""}</div><div class="bar"><i style="width:${p}%;background:var(--${subjOf(ch)})"></i></div></div>`};
-  const grpOf=ch=>ch>=1000?`Wordly Wise ${Math.floor(ch/1000)}`:(ch>=600&&ch<700?"欢乐伙伴":"Vocabulary Book · Chapters 54–61");
+    return `<div class="pc"><div><b>${esc(chName(ch))}</b><br><span class="note">${seen}${total?" of "+total:""} seen · ${learned} learned · ${tricky.length} tricky · ${fmt(a.seconds)} all time · ${a.q} questions</span></div><div class="note" style="text-align:right">${total?p+"% seen":""}</div><div class="bar"><i style="width:${p}%;background:var(--${subjOf(ch)})"></i></div></div>`};
+  const grpOf=ch=>ch>=1000?`Wordly Wise ${Math.floor(ch/1000)}`:"Vocabulary Book · Chapters 54–61";
   const G=[];chs.forEach(ch=>{const g=grpOf(ch);let x=G.find(y=>y.g===g);if(!x)G.push(x={g,c:[]});x.c.push(ch)});
   $("#chapters").innerHTML=chs.length?G.map(x=>{const at=x.c.reduce((s,ch)=>{const v=allTime[ch]||{seconds:0,q:0};return {s:s.s+v.seconds,q:s.q+v.q}},{s:0,q:0});
     return `<details class="dg" data-g="${esc(x.g)}"${DOPEN[x.g]?" open":""}><summary><b>${esc(x.g)}</b> <span class="note">· ${x.c.length} started · ${fmt(at.s)} · ${at.q} questions</span></summary>${x.c.map(pcRow).join("")}</details>`}).join("")
     :`<p class="note">No chapters started yet.</p>`;
   document.querySelectorAll("details.dg").forEach(d=>d.addEventListener("toggle",()=>{DOPEN[d.dataset.g]=d.open;try{localStorage.setItem("dash-open",JSON.stringify(DOPEN))}catch(e){}}));
 }
-["#who","#range","#subj"].forEach(s=>$(s).addEventListener("change",render));
+["#who","#range"].forEach(s=>$(s).addEventListener("change",render));
 let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(ROWS.length)render()},200)});
 $("#reload").onclick=load;
 load();
