@@ -220,7 +220,7 @@ function namePrompt(){
   $("#nameIn").focus();
 }
 /* learner state: which words have been asked, and which are tricky */
-const LKEY=CHAPTER.key+"-learner"+(HOSTED&&LEARNER?"-"+LEARNER.toLowerCase():""), ROUND=10, MIX_AT=10, MIX_TRICKY=3, GRADUATE=2;
+const LKEY=CHAPTER.key+"-learner"+(HOSTED&&LEARNER?"-"+LEARNER.toLowerCase():""), ROUND=20, MIX_AT=10, MIX_TRICKY=6, GRADUATE=2;
 let L={seen:{},tricky:[],updatedAt:0};
 try{const s=JSON.parse(localStorage.getItem(LKEY)||"null");if(s&&s.seen)L=s;else{const old=JSON.parse(localStorage.getItem(CHAPTER.key+"-tricky")||"[]");L.tricky=old}}catch(e){}
 let tricky=new Set(L.tricky);
@@ -237,7 +237,7 @@ function record(word,ok){
   else{s.streak=0;tricky.add(word)}
   saveL();return graduated;
 }
-/* a round: 10 new words; once there are more than 10 tricky words, 3 tricky + 7 new.
+/* a round: 20 new words; once there are more than 10 tricky words, 6 tricky + 14 new.
    When new words run out, fill with tricky words, then with the words seen longest ago. */
 function buildRound(){
   const trk=W.filter(e=>tricky.has(e.key)).sort((a,b)=>lastAsked(a)-lastAsked(b));
@@ -255,7 +255,7 @@ try{const m=localStorage.getItem(CHAPTER.key+"-mode");if(m)mode=m}catch(e){}
 
 function fillSets(){
   const sel=$("#set");const quizish=mode==="quiz"||mode==="reverse";
-  const opts=quizish?[["round","Next round (10 questions)"],["tricky",`Only my tricky words (${tricky.size})`]]
+  const opts=quizish?[["round",`Next round (${Math.min(ROUND,W.length)} questions)`],["tricky",`Only my tricky words (${tricky.size})`]]
                     :[["all",`All ${(mode==="list"?ALL:W).length} words`],["tricky",`My tricky words (${tricky.size})`]];
   sel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join("");
   if(!opts.some(o=>o[0]===setSel))setSel=opts[0][0];
