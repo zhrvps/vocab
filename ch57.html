@@ -427,7 +427,7 @@ function answer(o){
    <div class="row" style="margin-top:12px"><button class="btn" id="next">${Q.k+1<Q.qs.length?"Next question":"See my score"}</button></div>`;
   $("#next").focus({preventScroll:true});
 }
-function next(){Q.k++;if(Q.k<Q.qs.length)renderQ();else results()}
+function next(){if(!Q||Q.k>=Q.qs.length)return; /* score screen already shown: extra Enter presses must not count the round again */ Q.k++;if(Q.k<Q.qs.length)renderQ();else results()}
 function results(){
   const {score,qs,missed}=Q;const pct=score/qs.length;
   track.quiz();flush();
